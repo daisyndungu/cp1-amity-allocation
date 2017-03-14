@@ -34,6 +34,18 @@ class Test_Amity(unittest.TestCase):
         # office list length before adding new rooms
         self.assertGreater(len(self.amity.all_rooms['office']), self.counter)
 
+    def test_rejects_office_name_if_already_exists(self):
+        '''
+        Check if office name already exists.
+        '''
+        self.assertEqual(self.amity.create_room('o', ['hogwarts']),
+                         '!!!!...Office already exists...!!!!')
+
+    def test_rejects_living_space_name_if_already_exists(self):
+        '''
+        Check if living_space name already exists.
+        '''
+        self.assertEqual(self.amity.create_room('l', ['Scala', 'Go']), '!!!!...Living space already exists...!!!!')
 
 
 if __name__ == "__main__":
