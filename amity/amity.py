@@ -5,17 +5,52 @@ class Amity(object):
         }
     all_allocations = {
         'office': {
-            'camelot': []
+            'camelot': ['Daisy Wanjiru']
             },
         'living_space': {
-            'php': []
+            'php': ['Maureen Wangui']
         }
         }
-    all_unallocated = []
+    all_unallocated = ['Daisy Wanjiru', 'Maureen Wangui']
     all_rooms = {
-        'living_space': ['topaz'],
+        'living_space': ['php'],
         'office': ['hogwarts', 'camelot']
         }
+    db_conn = sqlite3.connect('Amity.db')
+    conn = db_conn.cursor()
+    sql_command = """
+        CREATE TABLE IF NOT EXISTS employee (
+        employee_id  INTEGER PRIMARY KEY,
+        name VARCHAR(30),
+        position VARCHAR(10),
+        unique (name, position));"""
+    conn.execute(sql_command)
+
+    sql_command = """
+        CREATE TABLE IF NOT EXISTS room (
+        room_id  INTEGER PRIMARY KEY,
+        name VARCHAR(30),
+        type VARCHAR(10),
+        unique (name, type));"""
+    conn.execute(sql_command)
+
+    sql_command = """
+        CREATE TABLE IF NOT EXISTS allocation (
+        allocation_id INTEGER PRIMARY KEY,
+        employee_id INTEGER,
+        room_id INTEGER,
+        FOREIGN KEY (employee_id) REFERENCES employee(employee_id),
+        FOREIGN KEY (room_id) REFERENCES room(room_id),
+        unique (employee_id, room_id));"""
+    conn.execute(sql_command)
+
+    sql_command = """
+        CREATE TABLE IF NOT EXISTS unallocated (
+        unallocated_id INTEGER PRIMARY KEY,
+        employee_id INTEGER,
+        FOREIGN KEY (employee_id) REFERENCES employee(employee_id),
+        unique (employee_id));"""
+    conn.execute(sql_command)
 
     def __init__(self):
         self.list_length = 0
@@ -148,3 +183,119 @@ class Amity(object):
                 print("Room %s has not allocations" % room_name)
         else:
             print("Room %s does not exist" % room_name)
+
+    def print_allocations(self):
+        output = input("Enter output medium:")
+        if output is 'S' or output is 's':
+            for key, value in self.all_allocations['office'].items():
+                print(key, '\n', ',\t'.join(map(str, value)))
+
+            for key, value in self.all_allocations['living_space'].items():
+                print(key, '\n', '\t'.join(map(str, value)))
+
+        elif output is 'f' or output is 'F':
+            for key, value in self.all_allocations['office'].items():
+                print(key, '\n', ',\t'.join(map(str, value)))
+
+            for key, value in self.all_allocations['living_space'].items():
+                print(key, '\n', '\t'.join(map(str, value)))
+        else:
+            print('...Invalid Command...Please try again.')
+
+    def print_allocations(self):
+        output = input("Enter output medium:")
+        if output is 'S' or output is 's':
+            print('...OFFICE...')
+            # Print all offices and the person names assigned to that room
+            for key, value in self.all_allocations['office'].items():
+                print(key, '\n', ',\t'.join(map(str, value)))
+            print('\n')
+            print('...LIVING SPACE...')
+            # Print all living spaces and the person names assigned to that room
+            for key, value in self.all_allocations['living_space'].items():
+                print(key, '\n', ',\t'.join(map(str, value)))
+
+        elif output is 'f' or output is 'F':
+            allocations_file = open("files/allocations.txt", "w")
+            allocations_file.write('\t\t...OFFICE...\n')
+            for key, items in self.all_allocations['office'].items():
+                item = ', '.join(items)
+                allocations_file.write('\t' + key + '\n---------------------\n' + item + '\n\n')
+            allocations_file.write('\n')
+            allocations_file.write('%'*60)
+            allocations_file.write('\n\n')
+            allocations_file.write('\t\t...LIVING SPACE...\n')
+            for key, items in self.all_allocations['living_space'].items():
+                item = ', '.join(items)
+                allocations_file.write('\t' + key + '\n---------------------\n' + item + '\n\n')
+            allocations_file.close()
+        else:
+            print('...Invalid Command...Please try again...')
+
+    def load_people(self):
+        load_people_file = open('files/load_People.txt')
+        for line in load_people_file.read().splitlines():
+            if len(line) == 0:
+                continue
+            list_words = line.split(' ')
+            person_name = ' '.join(list_words[:2])
+            position = ''.join(list_words[2][0])
+            try:
+                want_accomodation = ''.join(list_words[3])
+            except IndexError:
+                want_accomodation = 'N'
+            # print(position)
+            self.add_person(position, want_accomodation, person_name)
+
+    def save_state(self):
+        try:
+            # Save all employees
+            for position, names in self.all_persons.items():
+                for name in names:
+                    try:
+                        self.conn.execute("INSERT INTO employee VALUES (null,?,?);",
+                                          (name, position))
+                    except sqlite3.IntegrityError:
+                        continue
+            # Save all all_rooms
+            for room_type, room_names in self.all_rooms.items():
+                for name in room_names:
+                    try:
+                        self.conn.execute("INSERT INTO room VALUES (null,?,?);",
+                                          (name, room_type))
+                    except sqlite3.IntegrityError:
+                        continue
+            self.db_conn.commit()
+
+            # Save allocations
+            for room_name, person_names in self.all_allocations['office'].items():
+                for person_name in person_names:
+                    employee_id = self.conn.execute("SELECT employee_id FROM employee WHERE name=?",
+                                                    (person_name,))
+                    for e_id in employee_id:
+                        employee_id = e_id[0]
+                    room_id = self.conn.execute("SELECT room_id FROM room WHERE name=?",
+                                                (room_name,))
+                    for r_id in room_id:
+                        room_id = r_id[0]
+                    try:
+                        self.conn.execute("INSERT INTO allocation VALUES (null,?,?);",
+                                          (employee_id, room_id))
+                    except sqlite3.IntegrityError:
+                        continue
+            self.db_conn.commit()
+
+            # Save Unallocated people
+            for person_name in self.all_unallocated:
+                employee_id = self.conn.execute("SELECT employee_id FROM employee WHERE name=?",
+                                                (person_name,))
+                for e_id in employee_id:
+                    employee_id = e_id[0]
+                try:
+                    self.conn.execute("INSERT INTO unallocated VALUES (null,?);",
+                                      (employee_id,))
+                except sqlite3.IntegrityError:
+                    continue
+            self.db_conn.commit()
+        except:
+            print('An error occured')
