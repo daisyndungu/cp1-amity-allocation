@@ -308,3 +308,73 @@ class Amity(object):
             self.db_conn.commit()
         except:
             print('An error occured')
+
+    def load_state(self):
+        try:
+            # Load all employees from the Database
+            cprint('Loading Employees...\n', 'white')
+            data = self.conn.execute("SELECT name, position FROM employee")
+            try:
+                for row in data:
+                    person_name = row[0]
+                    position = row[1]
+                    if position is 'staff':
+                        self.all_persons['staff'].append(person_name)
+                    else:
+                        self.all_persons['fellow'].append(person_name)
+                cprint('*'*40)
+                cprint('\nLoaded successfully...\n', 'white')
+            except:
+                cprint("Able to load data. An error occurred.", 'red')
+            try:
+                # Load all rooms from the Database
+                cprint('Loading rooms...\n', 'white')
+                data = self.conn.execute("SELECT name, room_type FROM room")
+                for row in data:
+                    name = row[0]
+                    room_type = row[1]
+                    if room_type is 'office':
+                        self.all_rooms['office'].append(name)
+                    else:
+                        self.all_rooms['living_space'].append(name)
+                cprint('*'*40)
+                cprint('\nLoaded successfully...\n', 'white')
+            except:
+                cprint("Able to load data. An error occurred.", 'red')
+            try:
+                # Load all allocate people from the Database
+                cprint('Loading allocations...\n', 'white')
+                data = self.conn.execute("SELECT employee_id, room_id FROM allocation")
+                for row in data:
+                    employee_id = row[0]
+                    room_id = row[1]
+                    emp_data = self.conn.execute("SELECT employee_name FROM employee WHERE employee_id=?",
+                                                 (employee_id))
+                    room_data = self.conn.execute("SELECT room_name, room_type FROM employee WHERE room_id=?",
+                                                  (rooms_id))
+                    employee_name = [row[0] for row in emp_data]
+                    room_name = [row[0] for row in room_data]
+                    room_type = [row[1] for row in room_data]
+                    if room_type == 'office':
+                        self.all_allocations['office'][room_name].append[employee_name]
+                    else:
+                        self.all_allocations['living_space'][room_name].append[employee_name]
+                    print(self.all_allocations['living_space'][room_name])
+                cprint('*'*40)
+                cprint('\nLoaded successfully...\n', 'white')
+                # load unallocated
+                cprint('Loading unallocated...', 'white')
+                data = self.conn.execute("SELECT employee_id FROM unallocated")
+                for row in data:
+                    employee_id = row[0]
+                    emp_data = self.conn.execute("SELECT name FROM employee WHERE employee_id=?", (employee_id))
+                    for data in emp_data:
+                        employee_name = row[0]
+                    print(employee_name)
+                    print(self.all_unallocated.append(employee_name))
+                cprint('*'*40)
+                cprint('\nLoaded successfully...\n', 'white')
+            except:
+                cprint("Able to load data. An error occurred.", 'red')
+        except:
+            cprint("Able to load data. An error occurred.", 'red')
