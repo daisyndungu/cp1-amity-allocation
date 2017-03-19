@@ -135,7 +135,89 @@ class Amity(object):
                 else:
                     self.all_allocations['office'][allocated_office_name] = []
                     self.all_allocations['office'][allocated_office_name].append(person_name)
-                print("All allocations: Offices: ", ''self.all_allocations['office'])
+                print("All allocations: Offices: ", self.all_allocations['office'])
+
+    def reallocate_staff(self, person_name, new_room_name):
+            # Reallocate a staff to a new room
+                if new_room_name in self.all_allocations['office'].keys() and len(self.all_allocations['office'][new_room_name]) < 6:
+                    # Delete previous allocation
+                    self.remove_person_from_previous_allocation_office(person_name)
+                    # Reallocate to the new room
+                    self.all_allocations['office'][new_room_name].append(person_name)
+                    cprint('%s has been reallocated successfully...', 'white')
+                elif new_room_name in self.all_allocations['office'].keys() and len(self.all_allocations['office'][new_room_name]) > 6:
+                    cprint('This room is already full. Please choose another room.', 'red')
+                elif new_room_name not in self.all_allocations['office'].keys():
+                    # Delete previous allocation
+                    self.remove_person_from_previous_allocation_office(person_name)
+                    # Reallocate to the new room
+                    self.all_allocations['office'][new_room_name] = []
+                    self.all_allocations['office'][new_room_name].append(person_name)
+                    cprint('%s has been reallocated successfully...', 'white')
+                else:
+                    print("An error occured...")
+
+    def reallocate_fellow(self, person_name, new_room_name):
+        # Reallocate a fellow to a new office
+        if new_room_name in self.all_rooms['office']:
+            if new_room_name in self.all_allocations['office'].keys() and len(self.all_allocations['office'][new_room_name]) < 6:
+                # Delete previous allocation
+                self.remove_person_from_previous_allocation_office(person_name)
+                # Reallocate to the new room
+                self.all_allocations['office'][new_room_name].append(person_name)
+                cprint('%s has been reallocated successfully...', 'white')
+            elif new_room_name in self.all_allocations['office'].keys() and len(self.all_allocations['office'][new_room_name]) > 6:
+                print('This room is already full. Please choose another room.')
+            elif new_room_name not in self.all_allocations['office'].keys():
+                # Delete previous allocation
+                self.remove_person_from_previous_allocation_office(person_name)
+                # Reallocate to the new room
+                self.all_allocations['office'][new_room_name] = []
+                self.all_allocations['office'][new_room_name].append(person_name)
+                cprint('%s has been reallocated successfully...', 'white')
+        # Reallocate a fellow to a new Living_space
+        elif new_room_name in self.all_rooms['living_space']:
+            if new_room_name in self.all_allocations['living_space'].keys() and len(self.all_allocations['living_space'][new_room_name]) < 6:
+                # Reallocate to the new room
+                self.remove_person_from_previous_allocation_living_space(person_name)
+                # Delete previous allocation
+                self.all_allocations['living_space'][new_room_name].append(person_name)
+                cprint('%s has been reallocated successfully...', 'white')
+            elif new_room_name in self.all_allocations['living_space'].keys() and len(self.all_allocations['living_space'][new_room_name]) > 6:
+                print('This room is already full. Please choose another room.')
+            elif new_room_name not in self.all_allocations['living_space'].keys():
+                # Delete previous allocation
+                self.remove_person_from_previous_allocation_living_space(person_name)
+                # Reallocate to the new room
+                self.all_allocations['living_space'][new_room_name] = []
+                self.all_allocations['living_space'][new_room_name].append(person_name)
+                cprint('%s has been reallocated successfully...', 'white')
+        else:
+            print('An error occurred...')
+
+    def reallocate_person(self, person_name, new_room_name):
+        if person_name in self.all_persons['staffs'] and new_room_name in self.all_rooms['office']:
+            return self.reallocate_staff(person_name, new_room_name)
+        elif person_name in self.all_persons['fellows']:
+            return self.reallocate_fellow(person_name, new_room_name)
+        elif person_name in self.all_persons['staffs'] and new_room_name in self.all_rooms['living_space']:
+            cprint('Staff can not be reallocated to a living space', 'red')
+        else:
+            cprint('There is no room %s' % new_room_name, 'red')
+
+    def remove_person_from_previous_allocation_office(self, person_name):
+        for room, persons in self.all_allocations['office'].items():
+            if person_name in persons:
+                self.all_allocations['office'][room].remove(person_name)
+            else:
+                continue
+
+    def remove_person_from_previous_allocation_living_space(self, person_name):
+        for room, persons in self.all_allocations['living_space'].items():
+            if person_name in persons:
+                self.all_allocations['living_space'][room].remove(person_name)
+            else:
+                continue
 
     def print_room(self, room_name):
         """
