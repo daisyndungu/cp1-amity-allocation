@@ -42,21 +42,23 @@ class Amity(object):
         Create a list of rooms depending on the user's input
 
         """
-        if room_type == 'o' or room_type == 'O':
-            if room_name in self.all_rooms['office']:
+        if room_type == 'O':
+            if room_name in self.all_rooms['office'] or room_name in self.all_rooms['living_space']:
                 cprint("%s room already exists..." % room_name, 'white')
             else:
                 self.all_rooms['office'].append(room_name)
-                cprint("<<...An Office: %s has been created...>>" % room_name, 'cyan')
+                cprint("<<...An Office: %s has been created...>>"
+                       % room_name, 'cyan')
 
-        elif room_type == 'l' or room_type == 'l':
-            if room_name in self.all_rooms['living_space']:
-                print("...%s already exists..." % room_name)
+        elif room_type == 'L':
+            if room_name in self.all_rooms['living_space'] or room_name in self.all_rooms['office']:
+                cprint("%s room already exists..." % room_name, 'white')
             else:
                 self.all_rooms['living_space'].append(room_name)
-                print("<<...A Living Space: %s has been created...>>" % room_name)
+                cprint("<<...An Office: %s has been created...>>"
+                       % room_name, 'cyan')
         else:
-            print("invalid input. Type should be 'o' for office(s) or 'l' for living_space(s)")
+            cprint("invalid input. Type should be 'o' for office(s) or 'l' for living_space(s)", 'red')
 
     def add_person(self, position, person_name, want_accomodation=None):
         """
@@ -74,99 +76,113 @@ class Amity(object):
                 self.all_persons['staffs'].append(person_name)
                 print("<<...Staff: %s has been added...>>" % person_name)
                 # Allocating fellow an office
-                allocated_office_name = random.choice(self.all_rooms['office'])
-                if allocated_office_name in self.all_allocations['office'] and len(self.all_allocations['office'][allocated_office_name]) < 6:
-                    self.all_allocations['office'][allocated_office_name].append(person_name)
-                    print(self.all_allocations['office'])
-                else:
-                    self.all_allocations['office'][allocated_office_name] = []
-                    self.all_allocations['office'][allocated_office_name].append(person_name)
-                print("All allocations: Offices: ", self.all_allocations['office'])
-                print("All Staffs: ", self.all_persons['staffs'])
+                self.random_office_space(person_name)
+                print("...Allocated an Office Space...")
 
             # Adding a fellow and allocating an office space but deny them a living space
             elif position == 'S' and want_accomodation == 'Y':
                 self.all_persons['staffs'].append(person_name)
-                print("<<...Staff: %s has been added ...>>" % person_name)
+                cprint("<<...Staff: %s has been added ...>>" % person_name, 'cyan')
                 # Allocating fellow an office
-                allocated_office_name = random.choice(self.all_rooms['office'])
-                if allocated_office_name in self.all_allocations['office'] and len(self.all_allocations['office'][allocated_office_name]) < 6:
-                    self.all_allocations['office'][allocated_office_name].append(person_name)
-                    print(all_allocations['office'])
-                else:
-                    self.all_allocations['office'][allocated_office_name] = []
-                    self.all_allocations['office'][allocated_office_name].append(person_name)
-                print("...Staff can not be allocated a Living Space...")
-                print("All allocations: Offices: ", self.all_allocations['office'])
-                print("All Staffs: ", self.all_persons['staffs'])
-
+                self.random_office_space(person_name)
+                cprint("...Allocated an Office Space...", 'white')
+                # Reject request for accomodation
+                cprint("...Staff can not be allocated a Living Space...", 'white')
             # Adding a fellow and allocating them a living space and an office space
             elif position == 'F' and want_accomodation == 'Y':
                 self.all_persons['fellows'].append(person_name)
-                print("<<...Fellow: %s has been added...>>" % person_name)
+                cprint("<<...Fellow: %s has been added...>>" % person_name, 'cyan')
                 # Allocating fellow an office
-                allocated_office_name = random.choice(self.all_rooms['office'])
-                if allocated_office_name in self.all_allocations['office'] and len(self.all_allocations['office'][allocated_office_name]) < 6:
-                    self.all_allocations['office'][allocated_office_name].append(person_name)
-                    print(self.all_allocations['office'])
-                else:
-                    self.all_allocations['office'][allocated_office_name] = []
-                    self.all_allocations['office'][allocated_office_name].append(person_name)
+                self.random_office_space(person_name)
+                print("...Allocated an Office Space...")
                 # Allocating fellow a living space
-                allocated_living_space_name = random.choice(self.all_rooms['living_space'])
-                if allocated_living_space_name in self.all_allocations['living_space'] and len(self.all_allocations['living_space'][allocated_living_space_name]) < 4:
-                    self.all_allocations['living_space'][allocated_living_space_name].append(person_name)
-                    print(self.all_allocations['living_space'])
-                else:
-                    self.all_allocations['living_space'][allocated_living_space_name] = []
-                    self.all_allocations['living_space'][allocated_living_space_name].append(person_name)
-                print("All allocations: Living_space: ", self.all_allocations['living_space'])
-                print(self.all_persons['fellows'])
-
+                self.random_living_space_space(person_name)
             # Adding a fellow and allocating them an office space only
             elif position == 'F' and want_accomodation == 'N':
                 self.all_persons['fellows'].append(person_name)
-                print("<<...Fellow: %s has been added ...>>" % person_name)
+                cprint("<<...Fellow: %s has been added ...>>" % person_name, 'cyan')
                 # Allocating fellow an office
-                allocated_office_name = random.choice(self.all_rooms['office'])
-                if allocated_office_name in self.all_allocations['office'] and len(self.all_allocations['office'][allocated_office_name]) < 6:
-                    self.all_allocations['office'][allocated_office_name].append(person_name)
-                    print(all_allocations['office'])
-                else:
-                    self.all_allocations['office'][allocated_office_name] = []
-                    self.all_allocations['office'][allocated_office_name].append(person_name)
-                print("All allocations: Offices: ", self.all_allocations['office'])
+                self.random_office_space(person_name)
+                cprint("...Allocated an Office Space...", 'white')
+                # No accomodation
+                self.all_unallocated.append(person_name)
+
+    def random_office_space(self, person_name):
+        available_room = []
+        for room_name in self.all_allocations['office'].keys():
+            if len(self.all_allocations['office'][room_name]) < 6:
+                available_room.append(room_name)
+            else:
+                continue
+        # set_allocations_office = set(self.all_allocations['office'])
+        room_name = [room_name for room_name in self.all_rooms['office'] if
+                     room_name not in self.all_allocations['office'].keys()]
+        available_room.extend(room_name)
+        allocated_office_name = random.choice(available_room)
+        if allocated_office_name in self.all_allocations['office'].keys():
+            self.all_allocations['office'][allocated_office_name].append(person_name)
+        else:
+            self.all_allocations['office'][allocated_office_name] = []
+            self.all_allocations['office'][allocated_office_name].append(person_name)
+
+    def random_living_space_space(self, person_name):
+        available_room = []
+        for room_name in self.all_allocations['living_space'].keys():
+            if len(self.all_allocations['living_space'][room_name]) < 6:
+                available_room.append(room_name)
+            else:
+                continue
+        room_name = [room_name for room_name in self.all_rooms['living_space'] if
+                     room_name not in self.all_allocations['living_space'].keys()]
+        available_room.extend(room_name)
+        allocated_living_space_name = random.choice(available_room)
+        if allocated_living_space_name in self.all_allocations['living_space'].keys():
+            self.all_allocations['living_space'][allocated_living_space_name].append(person_name)
+        else:
+            self.all_allocations['living_space'][allocated_living_space_name] = []
+            self.all_allocations['living_space'][allocated_living_space_name].append(person_name)
 
     def reallocate_staff(self, person_name, new_room_name):
-            # Reallocate a staff to a new room
-                if new_room_name in self.all_allocations['office'].keys() and len(self.all_allocations['office'][new_room_name]) < 6:
-                    # Delete previous allocation
-                    self.remove_person_from_previous_allocation_office(person_name)
-                    # Reallocate to the new room
-                    self.all_allocations['office'][new_room_name].append(person_name)
-                    cprint('%s has been reallocated successfully...', 'white')
-                elif new_room_name in self.all_allocations['office'].keys() and len(self.all_allocations['office'][new_room_name]) > 6:
-                    cprint('This room is already full. Please choose another room.', 'red')
-                elif new_room_name not in self.all_allocations['office'].keys():
-                    # Delete previous allocation
-                    self.remove_person_from_previous_allocation_office(person_name)
-                    # Reallocate to the new room
-                    self.all_allocations['office'][new_room_name] = []
-                    self.all_allocations['office'][new_room_name].append(person_name)
-                    cprint('%s has been reallocated successfully...', 'white')
-                else:
-                    print("An error occured...")
+        """
+        Reallocates a fellow to a new office or new living space
+        """
+        # Reallocate a staff to a new room
+        if new_room_name in self.all_allocations['office'].keys() and len(
+                self.all_allocations['office'][new_room_name]) < 6:
+            # Delete previous allocation
+            self.remove_person_from_previous_allocation_office(person_name)
+            # Reallocate to the new room
+            self.all_allocations['office'][new_room_name].append(person_name)
+            cprint('%s has been reallocated successfully...', 'white')
+        elif new_room_name in self.all_allocations['office'].keys() and len(
+                self.all_allocations['office'][new_room_name]) > 6:
+            cprint('This room is already full. Please choose another room.', 
+                   'red')
+        elif new_room_name not in self.all_allocations['office'].keys():
+            # Delete previous allocation
+            self.remove_person_from_previous_allocation_office(person_name)
+            # Reallocate to the new room
+            self.all_allocations['office'][new_room_name] = []
+            self.all_allocations['office'][new_room_name].append(person_name)
+            cprint('%s has been reallocated successfully...', 'white')
+        else:
+            print("An error occured...")
 
     def reallocate_fellow(self, person_name, new_room_name):
+        """
+        Reallocates a fellow to a new office or new living space
+        """
         # Reallocate a fellow to a new office
         if new_room_name in self.all_rooms['office']:
-            if new_room_name in self.all_allocations['office'].keys() and len(self.all_allocations['office'][new_room_name]) < 6:
+            if new_room_name in self.all_allocations['office'].keys() and len(
+                    self.all_allocations['office'][new_room_name]) < 6:
                 # Delete previous allocation
                 self.remove_person_from_previous_allocation_office(person_name)
                 # Reallocate to the new room
                 self.all_allocations['office'][new_room_name].append(person_name)
                 cprint('%s has been reallocated successfully...', 'white')
-            elif new_room_name in self.all_allocations['office'].keys() and len(self.all_allocations['office'][new_room_name]) > 6:
+            elif new_room_name in self.all_allocations['office'].keys() and len(
+                    self.all_allocations['office'][new_room_name]) > 6:
                 print('This room is already full. Please choose another room.')
             elif new_room_name not in self.all_allocations['office'].keys():
                 # Delete previous allocation
@@ -177,13 +193,15 @@ class Amity(object):
                 cprint('%s has been reallocated successfully...', 'white')
         # Reallocate a fellow to a new Living_space
         elif new_room_name in self.all_rooms['living_space']:
-            if new_room_name in self.all_allocations['living_space'].keys() and len(self.all_allocations['living_space'][new_room_name]) < 6:
+            if new_room_name in self.all_allocations['living_space'].keys() and len(
+                    self.all_allocations['living_space'][new_room_name]) < 6:
                 # Reallocate to the new room
                 self.remove_person_from_previous_allocation_living_space(person_name)
                 # Delete previous allocation
                 self.all_allocations['living_space'][new_room_name].append(person_name)
                 cprint('%s has been reallocated successfully...', 'white')
-            elif new_room_name in self.all_allocations['living_space'].keys() and len(self.all_allocations['living_space'][new_room_name]) > 6:
+            elif new_room_name in self.all_allocations['living_space'].keys() and len(
+                    self.all_allocations['living_space'][new_room_name]) > 6:
                 print('This room is already full. Please choose another room.')
             elif new_room_name not in self.all_allocations['living_space'].keys():
                 # Delete previous allocation
@@ -196,16 +214,29 @@ class Amity(object):
             print('An error occurred...')
 
     def reallocate_person(self, person_name, new_room_name):
+        """
+        Checks if the person is a felloe or staff.
+        Also cheks if the room_name provided is a living space
+        or an office and reallocates accordingly
+        """
         if person_name in self.all_persons['staffs'] and new_room_name in self.all_rooms['office']:
             return self.reallocate_staff(person_name, new_room_name)
+        # Checks if the person is a fellow
         elif person_name in self.all_persons['fellows']:
             return self.reallocate_fellow(person_name, new_room_name)
+        # Checks if the person is a staff and if the room is a living space
         elif person_name in self.all_persons['staffs'] and new_room_name in self.all_rooms['living_space']:
             cprint('Staff can not be reallocated to a living space', 'red')
+        # Checks if person is in the system
+        elif person_name not in self.all_persons['staffs'] and person_name not in self.all_persons['fellows']:
+            cprint('%s is not an employee...' % person_name, 'red')
         else:
             cprint('There is no room %s' % new_room_name, 'red')
 
     def remove_person_from_previous_allocation_office(self, person_name):
+        """
+        Delete the previous record of office allocations if any
+        """
         for room, persons in self.all_allocations['office'].items():
             if person_name in persons:
                 self.all_allocations['office'][room].remove(person_name)
@@ -213,6 +244,9 @@ class Amity(object):
                 continue
 
     def remove_person_from_previous_allocation_living_space(self, person_name):
+        """
+        Delete the previous record of living_space allocations if any
+        """
         for room, persons in self.all_allocations['living_space'].items():
             if person_name in persons:
                 self.all_allocations['living_space'][room].remove(person_name)

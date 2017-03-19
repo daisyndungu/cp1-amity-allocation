@@ -72,14 +72,14 @@ class Amity(cmd.Cmd):
     prompt = '(Amity)<><> '
 
     @docopt_cmd
-    def do_create_room(self, args):  # Redo Creating two people with same name
+    def do_create_room(self, args):  # Done
         """Usage: create_room <room_type> <room_names> ... """
-        room_type = args['<room_type>']
+        room_type = args['<room_type>'].upper()
         for room_name in args['<room_names>']:
             self.amity.create_room(room_type, room_name)
 
     @docopt_cmd
-    def do_add_person(self, args):  # TODO
+    def do_add_person(self, args):  # Done
         """Usage: add_person <first_name> <last_name> <position> [--a=n] """
         person_name = args['<first_name>'] + ' ' + args['<last_name>']
         position = args['<position>'].upper()
@@ -114,7 +114,7 @@ class Amity(cmd.Cmd):
         self.amity.print_unallocated(filename)
 
     @docopt_cmd
-    def do_load_people():  # Doing..
+    def do_load_people():  # TODO
         """Usage: load_people [--db=db_name] """
         sqlite_database = arg['--db'] or None
         self.amity.load_people()
