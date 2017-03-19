@@ -1,5 +1,6 @@
 import sqlite3
-from tabulate import tabulate 
+from database import Database
+from tabulate import tabulate
 from termcolor import cprint, colored
 import random
 
@@ -7,7 +8,7 @@ import random
 class Amity(object):
     all_persons = {
         'staffs': ['Daisy Wanjiru'],
-        'fellows': ['Maureen Wangui']
+        'fellows': ['Maureen Wangui', 'New person']
         }
     all_allocations = {
         'office': {
@@ -17,46 +18,17 @@ class Amity(object):
             'php': ['Maureen Wangui']
         }
         }
-    all_unallocated = ['Daisy Wanjiru', 'Maureen Wangui']
+    all_unallocated = []
     all_rooms = {
         'living_space': ['php'],
-        'office': ['hogwarts', 'camelot']
+        'office': ['hogwarts', 'camelot', 'scala']
         }
-    db_conn = sqlite3.connect('Amity.db')
-    conn = db_conn.cursor()
-    sql_command = """
-        CREATE TABLE IF NOT EXISTS employee (
-        employee_id  INTEGER PRIMARY KEY,
-        name VARCHAR(30),
-        position VARCHAR(10),
-        unique (name, position));"""
-    conn.execute(sql_command)
-
-    sql_command = """
-        CREATE TABLE IF NOT EXISTS room (
-        room_id  INTEGER PRIMARY KEY,
-        name VARCHAR(30),
-        type VARCHAR(10),
-        unique (name, type));"""
-    conn.execute(sql_command)
-
-    sql_command = """
-        CREATE TABLE IF NOT EXISTS allocation (
-        allocation_id INTEGER PRIMARY KEY,
-        employee_id INTEGER,
-        room_id INTEGER,
-        FOREIGN KEY (employee_id) REFERENCES employee(employee_id),
-        FOREIGN KEY (room_id) REFERENCES room(room_id),
-        unique (employee_id, room_id));"""
-    conn.execute(sql_command)
-
-    sql_command = """
-        CREATE TABLE IF NOT EXISTS unallocated (
-        unallocated_id INTEGER PRIMARY KEY,
-        employee_id INTEGER,
-        FOREIGN KEY (employee_id) REFERENCES employee(employee_id),
-        unique (employee_id));"""
-    conn.execute(sql_command)
+    db_name = ''
+    db = Database()
+    cursor = db.cursor()
+    commit = db.commit()
+    create_table = db.create_table()
+    close_db = db.close_db()
 
     def __init__(self):
         self.list_length = 0
@@ -66,6 +38,11 @@ class Amity(object):
         self.room_names = []
 
     def create_room(self, room_type, room_name):
+        """
+
+        Create a list of rooms depending on the user's input
+
+        """
         if room_type == 'o' or room_type == 'O':
             if room_name in self.all_rooms['office']:
                 cprint("%s room already exists..." % room_name, 'white')
@@ -83,8 +60,14 @@ class Amity(object):
             print("invalid input. Type should be 'o' for office(s) or 'l' for living_space(s)")
 
     def add_person(self, position, person_name, want_accomodation='n'):
+        """
 
-            # Adding a staff and allocating them an office space
+        Add a person/employee and allocate them a room and/or living space 
+        depending on their position or preference(fellows)
+
+        """
+
+        # Adding a staff and allocating them an office space
         if position == 's' or position == 'S' and want_accomodation == 'n':
             if person_name in self.all_persons['staffs']:
                 print("...Staff: %s already exists..." % person_name)
@@ -170,8 +153,10 @@ class Amity(object):
 
     def print_room(self, room_name):
         """
+
         Prints all the allocated people in the specified room_name
         if any.
+
         """
         if room_name in self.all_rooms['office']:
             if room_name in self.all_allocations['office']:
@@ -180,7 +165,7 @@ class Amity(object):
                 cprint('\n '.join(self.all_allocations['office'][room_name]),
                        'blue')
             else:
-                cprint("Room %s has not allocations" % room_name, 'white')
+                cprint("Room %s has no allocations" % room_name, 'white')
 
         elif room_name in self.all_rooms['living_space']:
             if room_name in self.all_allocations['living_space']:
@@ -189,59 +174,76 @@ class Amity(object):
                 cprint('\n '.join(self.all_allocations['living_space']
                                   [room_name]), 'blue')
             else:
-                cprint("Room %s has not allocations" % room_name, 'white')
+                cprint("Room %s has no allocations" % room_name, 'white')
         else:
             cprint("Room %s does not exist" % room_name, 'white')
 
-    def print_allocations(self):
-        output = input("Enter output medium:")
-        if output is 'S' or output is 's':
-            for key, value in self.all_allocations['office'].items():
-                print(key, '\n', ',\t'.join(map(str, value)))
+    def print_allocations(self, filename=None):
+        """
 
-            for key, value in self.all_allocations['living_space'].items():
-                print(key, '\n', '\t'.join(map(str, value)))
+        Prints all the rooms and the people assigned to them.
+        It can display this in a text file ore the screen.
 
-        elif output is 'f' or output is 'F':
-            for key, value in self.all_allocations['office'].items():
-                print(key, '\n', ',\t'.join(map(str, value)))
-
-            for key, value in self.all_allocations['living_space'].items():
-                print(key, '\n', '\t'.join(map(str, value)))
-        else:
-            print('...Invalid Command...Please try again.')
-
-    def print_allocations(self):
-        output = input("Enter output medium:")
-        if output is 'S' or output is 's':
-            print('...OFFICE...')
-            # Print all offices and the person names assigned to that room
-            for key, value in self.all_allocations['office'].items():
-                print(key, '\n', ',\t'.join(map(str, value)))
-            print('\n')
-            print('...LIVING SPACE...')
-            # Print all living spaces and the person names assigned to that room
-            for key, value in self.all_allocations['living_space'].items():
-                print(key, '\n', ',\t'.join(map(str, value)))
-
-        elif output is 'f' or output is 'F':
-            allocations_file = open("files/allocations.txt", "w")
+        """
+        # Printing into a txt file
+        if filename is not None:
+            filepath = 'files/' + filename + '.txt'
+            allocations_file = open(filepath, "w")
+            print("Printing to %s..." % filename)
             allocations_file.write('\t\t...OFFICE...\n')
             for key, items in self.all_allocations['office'].items():
                 item = ', '.join(items)
                 allocations_file.write('\t' + key + '\n---------------------\n' + item + '\n\n')
-            allocations_file.write('\n')
-            allocations_file.write('%'*60)
-            allocations_file.write('\n\n')
             allocations_file.write('\t\t...LIVING SPACE...\n')
             for key, items in self.all_allocations['living_space'].items():
                 item = ', '.join(items)
                 allocations_file.write('\t' + key + '\n---------------------\n' + item + '\n\n')
             allocations_file.close()
+            print('Done.')
+        elif filename is None:
+            if len(self.all_allocations) > 0:
+                print('...OFFICE...')
+                # Print all offices and the person names assigned to that room
+                for key, value in self.all_allocations['office'].items():
+                    print(key, '\n', ',\t'.join(map(str, value)))
+                print('\n')
+                print('%'*60)
+                print('...LIVING SPACE...')
+                # Print all living spaces and the person names assigned to that room
+                for key, value in self.all_allocations['living_space'].items():
+                    print(key, '\n', ',\t'.join(map(str, value)))
+            else:
+                cprint("There are no allocations at the moment...", 'white')
         else:
             print('...Invalid Command...Please try again...')
 
+    def print_unallocated(self, filename=None):
+        """
+        Displays all the unallocated people
+        """
+        # Print on screen
+        if filename is not None:
+            filepath = 'files/' + filename + '.txt'
+            unallocated_file = open(filepath, 'w')
+            cprint("Printing to file %s..." % filename , 'white')
+            unallocated_file.write('\t \t \t...UNALLOCATED PEOPLE...\n')
+            for name in self.all_unallocated:
+                unallocated_file.write(name + ',\t')
+            unallocated_file.close()
+            cprint('Done.')
+        # Print in a txt file
+        elif filename is None:
+            if len(self.all_unallocated) > 0:
+                cprint(',\t'.join(map(str, self.all_unallocated)), 'cyan')
+            else:
+                cprint("There are no unallocated people at the moment...", 'white')
+        else:
+            cprint('invalid', 'red')
+
     def load_people(self):
+        """
+        Collects details about employees and adds them to the system
+        """
         load_people_file = open('files/load_People.txt')
         for line in load_people_file.read().splitlines():
             if len(line) == 0:
@@ -255,61 +257,16 @@ class Amity(object):
                 want_accomodation = 'N'
             # print(position)
             self.add_person(position, want_accomodation, person_name)
-
-    def save_state(self, db=Amity.db):
-        try:
-            # Save all employees
-            for position, names in self.all_persons.items():
-                for name in names:
-                    try:
-                        self.conn.execute("INSERT INTO employee VALUES (null,?,?);",
-                                          (name, position))
-                    except sqlite3.IntegrityError:
-                        continue
-            # Save all all_rooms
-            for room_type, room_names in self.all_rooms.items():
-                for name in room_names:
-                    try:
-                        self.conn.execute("INSERT INTO room VALUES (null,?,?);",
-                                          (name, room_type))
-                    except sqlite3.IntegrityError:
-                        continue
-            self.db_conn.commit()
-
-            # Save allocations
-            for room_name, person_names in self.all_allocations['office'].items():
-                for person_name in person_names:
-                    employee_id = self.conn.execute("SELECT employee_id FROM employee WHERE name=?",
-                                                    (person_name,))
-                    for e_id in employee_id:
-                        employee_id = e_id[0]
-                    room_id = self.conn.execute("SELECT room_id FROM room WHERE name=?",
-                                                (room_name,))
-                    for r_id in room_id:
-                        room_id = r_id[0]
-                    try:
-                        self.conn.execute("INSERT INTO allocation VALUES (null,?,?);",
-                                          (employee_id, room_id))
-                    except sqlite3.IntegrityError:
-                        continue
-            self.db_conn.commit()
-
-            # Save Unallocated people
-            for person_name in self.all_unallocated:
-                employee_id = self.conn.execute("SELECT employee_id FROM employee WHERE name=?",
-                                                (person_name,))
-                for e_id in employee_id:
-                    employee_id = e_id[0]
-                try:
-                    self.conn.execute("INSERT INTO unallocated VALUES (null,?);",
-                                      (employee_id,))
-                except sqlite3.IntegrityError:
-                    continue
-            self.db_conn.commit()
-        except:
-            print('An error occured')
+            print('%s has been added' % person_name)
 
     def load_state(self):
+        """
+
+        Collects all the stored information and loads it into the application
+        This data persists for as long as the application is running after 
+        running this function
+
+        """
         try:
             # Load all employees from the Database
             cprint('Loading Employees...\n', 'white')
