@@ -5,6 +5,7 @@ interactive command application.
 Usage:
     Amity create_room create_room <room_type> <room_names>...
     Amity add_person <first_name> <last_name> <position> [--a='n']
+    Amity add_person <first_name> <last_name> <new_room_name>
     Amity print_room <room_name>
     Amity print_allocations [-o=filename]
     Amity print_unallocated [--o=filename]
@@ -88,8 +89,11 @@ class Amity(cmd.Cmd):
         self.amity.add_person(position, person_name, want_accomodation)
 
     @docopt_cmd
-    def do_reallocate_person(self, args):  # TODO
-        self.amity.reallocate_person(person_identifier, new_room_name)
+    def do_reallocate_person(self, args):  # Done
+        """Usage: add_person <first_name> <last_name> <new_room_name> """
+        person_name = args['<first_name>'] + ' ' + args['<last_name>']
+        new_room_name = args['<new_room_name>']
+        self.amity.reallocate_person(person_name, new_room_name)
 
     @docopt_cmd
     def do_print_room(self, arg):  # DONE
@@ -110,7 +114,7 @@ class Amity(cmd.Cmd):
         self.amity.print_unallocated(filename)
 
     @docopt_cmd
-    def do_load_people():  # TODO
+    def do_load_people():  # Doing..
         """Usage: load_people [--db=db_name] """
         sqlite_database = arg['--db'] or None
         self.amity.load_people()
