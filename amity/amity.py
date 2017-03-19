@@ -1,5 +1,5 @@
 import sqlite3
-from database import Database
+# from database import *
 from tabulate import tabulate
 from termcolor import cprint, colored
 import random
@@ -15,7 +15,7 @@ class Amity(object):
             'camelot': ['Daisy Wanjiru']
             },
         'living_space': {
-            'php': ['Maureen Wangui']
+
         }
         }
     all_unallocated = []
@@ -23,12 +23,11 @@ class Amity(object):
         'living_space': ['php'],
         'office': ['hogwarts', 'camelot', 'scala']
         }
-    db_name = ''
-    db = Database()
-    cursor = db.cursor()
-    commit = db.commit()
-    create_table = db.create_table()
-    close_db = db.close_db()
+    # db = Create_Database()
+    # cursor = Cursor()
+    # commit = Commit()
+    # create_table = Create_table()
+    # close_db = Close_db()
 
     def __init__(self):
         self.list_length = 0
@@ -59,19 +58,19 @@ class Amity(object):
         else:
             print("invalid input. Type should be 'o' for office(s) or 'l' for living_space(s)")
 
-    def add_person(self, position, person_name, want_accomodation='n'):
+    def add_person(self, position, person_name, want_accomodation=None):
         """
 
         Add a person/employee and allocate them a room and/or living space 
         depending on their position or preference(fellows)
 
         """
-
-        # Adding a staff and allocating them an office space
-        if position == 's' or position == 'S' and want_accomodation == 'n':
-            if person_name in self.all_persons['staffs']:
-                print("...Staff: %s already exists..." % person_name)
-            else:
+        # Check if staff exists
+        if person_name in self.all_persons['staffs'] + self.all_persons['fellows']:
+            print("...Employee: %s already exists..." % person_name)
+        else:
+            # Adding a staff and allocating them an office space
+            if position == 'S' and want_accomodation == 'N':
                 self.all_persons['staffs'].append(person_name)
                 print("<<...Staff: %s has been added...>>" % person_name)
                 # Allocating fellow an office
@@ -85,11 +84,8 @@ class Amity(object):
                 print("All allocations: Offices: ", self.all_allocations['office'])
                 print("All Staffs: ", self.all_persons['staffs'])
 
-        # Adding a fellow and allocating an office space but deny them a living space
-        elif position == 's' or position == 'S' and want_accomodation == 'y':
-            if person_name in self.all_persons['staffs']:
-                print("...Staff: %s already exists..." % person_name)
-            else:
+            # Adding a fellow and allocating an office space but deny them a living space
+            elif position == 'S' and want_accomodation == 'Y':
                 self.all_persons['staffs'].append(person_name)
                 print("<<...Staff: %s has been added ...>>" % person_name)
                 # Allocating fellow an office
@@ -104,11 +100,8 @@ class Amity(object):
                 print("All allocations: Offices: ", self.all_allocations['office'])
                 print("All Staffs: ", self.all_persons['staffs'])
 
-        # Adding a fellow and allocating them a living space and an office space
-        elif position == 'f' or position == 'F' and want_accomodation == 'y':
-            if person_name in self.all_persons['fellows']:
-                print("...Fellow: %s already exists..." % person_name)
-            else:
+            # Adding a fellow and allocating them a living space and an office space
+            elif position == 'F' and want_accomodation == 'Y':
                 self.all_persons['fellows'].append(person_name)
                 print("<<...Fellow: %s has been added...>>" % person_name)
                 # Allocating fellow an office
@@ -130,11 +123,8 @@ class Amity(object):
                 print("All allocations: Living_space: ", self.all_allocations['living_space'])
                 print(self.all_persons['fellows'])
 
-        # Adding a fellow and allocating them an office space only
-        elif position == 'f' or position == 'F' and want_accomodation == 'n':
-            if person_name in self.all_persons['fellows']:
-                print("...Fellow: %s already exists..." % person_name)
-            else:
+            # Adding a fellow and allocating them an office space only
+            elif position == 'F' and want_accomodation == 'N':
                 self.all_persons['fellows'].append(person_name)
                 print("<<...Fellow: %s has been added ...>>" % person_name)
                 # Allocating fellow an office
@@ -145,11 +135,7 @@ class Amity(object):
                 else:
                     self.all_allocations['office'][allocated_office_name] = []
                     self.all_allocations['office'][allocated_office_name].append(person_name)
-                print("All allocations: Offices: ", self.all_allocations['office'])
-                print("All Staffs: ", self.all_persons['staffs'])
-
-        else:
-            print("Invalid Input")
+                print("All allocations: Offices: ", ''self.all_allocations['office'])
 
     def print_room(self, room_name):
         """
@@ -258,6 +244,65 @@ class Amity(object):
             # print(position)
             self.add_person(position, want_accomodation, person_name)
             print('%s has been added' % person_name)
+
+    def save_state(self, db_name=None): # TODO
+        if db_name is not None:
+            db = db_name + '.db'
+        else:
+            db = 'mity.db'
+
+        try:
+            # Save all employees
+            for position, names in self.all_persons.items():
+                for name in names:
+                    try:
+                        self.cursor.execute("INSERT INTO employee VALUES (null,?,?);",
+                                            (name, position))
+                    except sqlite3.IntegrityError:
+                        continue
+            # Save all all_rooms
+            for room_type, room_names in self.all_rooms.items():
+                for name in room_names:
+                    try:
+                        self.conn.execute("INSERT INTO room VALUES (null,?,?);",
+                                          (name, room_type))
+                    except sqlite3.IntegrityError:
+                        continue
+            self.db_conn.commit()
+
+            # Save allocations
+            for room_name, person_names in self.all_allocations['office'].items():
+                for person_name in person_names:
+                    employee_id = self.conn.execute("SELECT employee_id FROM employee WHERE name=?",
+                                                    (person_name,))
+                    for e_id in employee_id:
+                        employee_id = e_id[0]
+                    room_id = self.conn.execute("SELECT room_id FROM room WHERE name=?",
+                                                (room_name,))
+                    for r_id in room_id:
+                        room_id = r_id[0]
+                    try:
+                        self.conn.execute("INSERT INTO allocation VALUES (null,?,?);",
+                                          (employee_id, room_id))
+                    except sqlite3.IntegrityError:
+                        continue
+            self.db_conn.commit()
+
+            # Save Unallocated people
+            for person_name in self.all_unallocated:
+                employee_id = self.conn.execute("SELECT employee_id FROM employee WHERE name=?",
+                                                (person_name,))
+                for e_id in employee_id:
+                    employee_id = e_id[0]
+                try:
+                    self.conn.execute("INSERT INTO unallocated VALUES (null,?);",
+                                      (employee_id,))
+                except sqlite3.IntegrityError:
+                    continue
+            self.db_conn.commit()
+        except:
+            print('An error occured')
+        self.db_conn.close()
 
     def load_state(self):
         """

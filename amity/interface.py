@@ -80,19 +80,15 @@ class Amity(cmd.Cmd):
     @docopt_cmd
     def do_add_person(self, args):  # TODO
         """Usage: add_person <first_name> <last_name> <position> [--a=n] """
-        position = args['<position>']
         person_name = args['<first_name>'] + ' ' + args['<last_name>']
-        print(person_name)
+        position = args['<position>'].upper()
         if args['--a'] is None:
-            args['--a'] == 'n'
-        else:
-            want_accomodation = args['--a']
-        want_accomodation = args['--a']
-        print(want_accomodation)
+            args['--a'] = 'N'
+        want_accomodation = args['--a'].upper()
         self.amity.add_person(position, person_name, want_accomodation)
 
     @docopt_cmd
-    def do_reallocate_person(self, args):
+    def do_reallocate_person(self, args):  # TODO
         self.amity.reallocate_person(person_identifier, new_room_name)
 
     @docopt_cmd
