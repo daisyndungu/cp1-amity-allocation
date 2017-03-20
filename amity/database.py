@@ -3,18 +3,16 @@ import sys
 import sqlite3
 
 
-class Database():
-    db_name = ''
-    db_conn = sqlite3.connect(db_name)
-
-    db_conn.text_factory = str
+class Database(object):
+    def __init__(self, db_name):
+        self.conn = sqlite3.connect(db_name)
 
     def cursor(self):
-        return self.db_conn.cursor()
+        return self.conn.cursor()
 
     def commit(self):
         """Commit pending changes"""
-        self.db_conn.commit()
+        return self.conn.commit()
 
     def create_table(self):
         cursor = self.cursor()
@@ -30,8 +28,8 @@ class Database():
             CREATE TABLE IF NOT EXISTS room (
             room_id  INTEGER PRIMARY KEY,
             name VARCHAR(30),
-            type VARCHAR(10),
-            unique (name, type));"""
+            room_type VARCHAR(10),
+            unique (name, room_type));"""
         cursor.execute(sql_command)
 
         sql_command = """
@@ -53,4 +51,4 @@ class Database():
         cursor.execute(sql_command)
 
     def close_db(self):
-        return self.db_conn.close()
+        return self.conn.close()
