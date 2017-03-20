@@ -5,11 +5,15 @@ interactive command application.
 Usage:
     Amity create_room create_room <room_type> <room_names>...
     Amity add_person <first_name> <last_name> <position> [--a='n']
-    Amity add_person <first_name> <last_name> <new_room_name>
+    Amity reallocate_person <first_name> <last_name> <new_room_name>
     Amity print_room <room_name>
+    Amity print_all_people [--o=filename]
+    Amity print_all_rooms [--o=filename]
     Amity print_allocations [-o=filename]
     Amity print_unallocated [--o=filename]
+    Amity load_people <filename>
     Amity save_state [--db=db_name]
+    Amity load_state [--db=db_name]
 Options:
     -i, --interactive  Interactive Mode
     -h, --help  Show this screen and exit.
@@ -102,6 +106,18 @@ class Amity(cmd.Cmd):
         self.amity.print_room(room_name)
 
     @docopt_cmd
+    def do_print_all_persons(self, arg):
+        """Usage: print_all_people [--o=filename]"""
+        filename = arg['--o'] or None
+        self.amity.print_all_persons(filename)
+
+    @docopt_cmd
+    def do_print_all_rooms(self, arg):
+        """Usage: print_all_rooms [--o=filename]"""
+        filename = arg['--o'] or None
+        self.amity.print_all_rooms(filename)
+
+    @docopt_cmd
     def do_print_allocations(self, arg):  # Done
         """ Usage: print_allocations [--o=filename] """
         filename = arg['--o'] or None
@@ -114,21 +130,24 @@ class Amity(cmd.Cmd):
         self.amity.print_unallocated(filename)
 
     @docopt_cmd
-    def do_load_people():  # TODO
-        """Usage: load_people [--db=db_name] """
-        sqlite_database = arg['--db'] or None
-        self.amity.load_people()
+    def do_load_people(self, arg):  # Done
+        """Usage: load_people <filename>"""
+        filename = arg['<filename>']
+        cprint('loading...\n', 'grey')
+        self.amity.load_people(filename)
+        cprint('***Done***', 'white')
 
     @docopt_cmd
-    def do_save_state(self, arg):  # TODO
+    def do_save_state(self, arg):  # Done
         """Usage: save_state [--db=db_name] """
         db_name = arg['--db'] or None
         self.amity.save_state(db_name)
 
     @docopt_cmd
-    def do_load_state():  # TODO
-        """Usage: load_people """
-        self.amity.load_state()
+    def do_load_state(self, arg):  # TODO
+        """Usage: load_state [--db=db_name] """
+        db_name = arg['--db'] or None
+        self.amity.load_state(db_name)
 
     def do_quit(self, arg):
         """Quits out of Interactive Mode."""
