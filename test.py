@@ -1,57 +1,97 @@
 import unittest
 import sys
-import os
+from io import StringIO
 
 from amity.amity import Amity
 
 
 class Test_Amity(unittest.TestCase):
 
+    all_persons = {
+        'staffs': ['Daisy Wanjiru'],
+        'fellows': ['Maureen Wangui']
+        }
+    all_allocations = {
+        'office': {
+            'camelot': ['Daisy Wanjiru']
+            },
+        'living_space': {
+            'php': []
+        }
+        }
+    all_unallocated = []
+    all_rooms = {
+        'living_space': ['php'],
+        'office': ['hogwarts']
+        }
+
     def setUp(self):
         # Creates an object (amity) that calls class Amity_allocation.
         self.amity = Amity()
+        self.held, sys.stdout = sys.stdout, StringIO()
 
-    def test_create_living_space(self):
+    def test_create_living_space(self):  # pass
         '''
         This tests if the length of the living space list of living space increases after 
         the new rooms have been created
 
         '''
         # Checks the length of the living space list before adding new rooms
-        self.counter = len(self.amity.all_rooms['living_space'])
-        self.amity.create_room('l', ['php'])
+        counter = len(self.amity.all_rooms['living_space'])
+        # Create new rooms
+        self.amity.create_room('L', ['topaz'])
         # Checks the length of the living space list after adding new rooms and confirms if it is greater than the previous
-        self.assertGreater(len(self.amity.all_rooms['living_space']), self.counter)
+        self.assertGreater(len(self.amity.all_rooms['living_space']), counter)
 
-    def test_create_office_space(self):
+    def test_create_office_space(self):  # pass
         '''
-        This tests if the length of the list of office increases after 
+        This tests if the length of the list of office increases after
         the new rooms have been created
         '''
+        counter = len(self.amity.all_rooms['office'])
+        self.amity.create_room('O', ['narnia'])
         # office list length before adding new rooms
-        self.counter = len(self.amity.all_rooms['office'])
-        self.amity.create_room('o', ['hogwarts', 'narnia'])
-        # office list length before adding new rooms
-        self.assertGreater(len(self.amity.all_rooms['office']), self.counter)
+        self.assertGreater(len(self.amity.all_rooms['office']), counter)
 
-    def test_rejects_office_name_if_already_exists(self):
+    def test_rejects_office_name_if_already_exists(self):  # pass
         '''
         Check if office name already exists.
         '''
-        self.assertEqual(self.amity.create_room('o', ['hogwarts']),
-                         '!!!!...Office already exists...!!!!')
+        self.amity.create_room('O', 'hogwarts')
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('hogwarts room already exists...', message)
 
-    def test_rejects_living_space_name_if_already_exists(self):
+    def test_rejects_living_space_name_if_already_exists(self):  # pass
         '''
         Check if living_space name already exists.
         '''
-        self.assertEqual(self.amity.create_room('l', ['Scala', 'Go']), '!!!!...Living space already exists...!!!!')
+        self.amity.create_room('L', 'php')
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('php room already exists...', message)
+
     def test_add_person_staff(self):
         '''
-
+        Tests if staff list increases after adding a new person
         '''
-        self.assertEqual(self.amity.add_person('Jane Done', 'staff', ''),
-                         'You are a staff hence will be allocated an Office only')
+        # Checks the length of staffs list before adding a new person
+        counter = len(self.amity.all_persons['staffs'])
+        # Adding a new person
+        self.amity.add_person('S', ['John Doe'], 'N')
+        # Checks the length of staff list after adding new rooms and confirms 
+        # if it is greater than the previous
+        self.assertGreater(len(self.amity.all_persons['staffs']), counter)
+
+    def test_add_person_fellow(self):
+        '''
+        Tests if fellow list increases after adding a new person
+        '''
+        # Checks the length of fellows list before adding a new person
+        counter = len(self.amity.all_persons['fellows'])
+        # Adding a new person
+        self.amity.add_person('F', ['Jane Doe'], 'Y')
+        # Checks the length of fellow list after adding new rooms and confirms
+        # if it is greater than the previous
+        self.assertGreater(len(self.amity.all_persons['fellows']), counter)
 
     def test_add_person_staff_rejects_request_for_accomodation(self):
         '''
@@ -64,16 +104,10 @@ class Test_Amity(unittest.TestCase):
         self.assertEqual(self.amity.add_person('Lee ndungu', 'fellow', 'y'), 'You are a fellow hence will be allocated an office and a Living Space')
 
     def test_random_allocations_of_offices(self):
-        self.amity.add_person('f', 'Joe Doe', 'y')
-        # Test  checks if a key with the room name already exists in office
-        self.assertIn('Kilaguni', self.amity.all_allocations['office'].keys())
-
-        # adds person name in the list
-        self.assertIn('Joe Doe', self.amity.all_allocations['office'][self.room_name])#identify or declare the room
-        # Test  checks if a key with the room name exists in living space
-        self.assertIn(self.room_name, self.amity.all_allocations['living_space'].keys())
-        # Test adds list item with person name
-        self.assertIn(self.amity.add_person('Joe Doe'), self.amity.all_allocations['living_space'][self.room_name])
+        person_name = 'John Doe'
+        self.amity.random_living_space_space(person_name)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('Allocating a living Space...', message)
 
     def test_add_person_fellow_no_accomodation(self):
         self.assertEqual(self.amity.add_person('John Doe', 'fellow', 'n'),
