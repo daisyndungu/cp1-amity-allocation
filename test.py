@@ -1,46 +1,49 @@
 import unittest
 import sys
 from io import StringIO
+import sqlite3
 
 from amity.amity import Amity
+from amity.database import Database
 
 
 class Test_Amity(unittest.TestCase):
-
-    all_persons = {
-        'staffs': ['Daisy Wanjiru'],
-        'fellows': ['Maureen Wangui']
-        }
-    all_allocations = {
-        'office': {
-            'camelot': ['Daisy Wanjiru']
-            },
-        'living_space': {
-            'php': []
-        }
-        }
-    all_unallocated = []
-    all_rooms = {
-        'living_space': ['php'],
-        'office': ['hogwarts']
-        }
 
     def setUp(self):
         # Creates an object (amity) that calls class Amity_allocation.
         self.amity = Amity()
         self.held, sys.stdout = sys.stdout, StringIO()
+        self.amity.all_persons = {
+                'staff': ['Daisy Wanjiru'],
+                'fellow': ['Maureen Wangui']
+            }
+        self.amity.all_allocations = {
+                'office': {
+                    'camelot': ['Daisy Wanjiru', 'Maureen Wangui'],
+                    'hogwarts': []
+                    },
+                'living_space': {
+                    'php': ['Maureen Wangui']
+                }
+                }
+        self.amity.all_unallocated = []
+        self.amity.all_rooms = {
+                'living_space': ['php', 'scala'],
+                'office': ['hogwarts', 'Narnia', 'camelot']
+                }
 
     def test_create_living_space(self):  # pass
         '''
-        This tests if the length of the living space list of living space increases after 
-        the new rooms have been created
+        This tests if the length of the living space list of living space 
+        increases after the new rooms have been created
 
         '''
         # Checks the length of the living space list before adding new rooms
         counter = len(self.amity.all_rooms['living_space'])
         # Create new rooms
         self.amity.create_room('L', ['topaz'])
-        # Checks the length of the living space list after adding new rooms and confirms if it is greater than the previous
+        # Checks the length of the living space list after adding new rooms and
+        # confirms if it is greater than the previous
         self.assertGreater(len(self.amity.all_rooms['living_space']), counter)
 
     def test_create_office_space(self):  # pass
@@ -74,87 +77,89 @@ class Test_Amity(unittest.TestCase):
         Tests if staff list increases after adding a new person
         '''
         # Checks the length of staffs list before adding a new person
-        counter = len(self.amity.all_persons['staffs'])
+        counter = len(self.amity.all_persons['staff'])
         # Adding a new person
         self.amity.add_person('S', ['John Doe'], 'N')
         # Checks the length of staff list after adding new rooms and confirms 
         # if it is greater than the previous
-        self.assertGreater(len(self.amity.all_persons['staffs']), counter)
+        self.assertGreater(len(self.amity.all_persons['staff']), counter)
 
     def test_add_person_fellow(self):
         '''
         Tests if fellow list increases after adding a new person
         '''
         # Checks the length of fellows list before adding a new person
-        counter = len(self.amity.all_persons['fellows'])
+        counter = len(self.amity.all_persons['fellow'])
         # Adding a new person
         self.amity.add_person('F', ['Jane Doe'], 'Y')
         # Checks the length of fellow list after adding new rooms and confirms
         # if it is greater than the previous
-        self.assertGreater(len(self.amity.all_persons['fellows']), counter)
+        self.assertGreater(len(self.amity.all_persons['fellow']), counter)
 
-    def test_add_person_staff_rejects_request_for_accomodation(self):
+    def test_add_person_staff_rejects_request_for_accomodation(self):  # pass
         '''
 
         '''
-        self.assertEqual(self.amity.add_person('Clare C', 'staff', 'y'), 'You are a staff hence will be allocated an Office but not a Living Space ')
-
-    def test_add_person_fellow_allocates_accomodation(self):
-
-        self.assertEqual(self.amity.add_person('Lee ndungu', 'fellow', 'y'), 'You are a fellow hence will be allocated an office and a Living Space')
-
-    def test_random_allocations_of_offices(self):
-        person_name = 'John Doe'
-        self.amity.random_living_space_space(person_name)
+        self.amity.add_person('S', 'Clare C', 'Y')
         message = sys.stdout.getvalue().strip()
-        self.assertIn('Allocating a living Space...', message)
+        self.assertIn('...Staff can not be allocated a Living Space..', message)
 
-    def test_add_person_fellow_no_accomodation(self):
-        self.assertEqual(self.amity.add_person('John Doe', 'fellow', 'n'),
-                         'You are a fellow hence will be allocated an office but not Living Space')
+    def test_add_person_fellow_allocates_accomodation(self):  # pass
+        self.amity.add_person('F', 'Lee ndungu', 'Y')
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('Lee ndungu has been added...', message)
 
-    def test_add_person_fellow_no_accomodation(self):
-        self.assertEqual(self.amity.add_person('Mary mary', 'fellow', ''),
-                         'You are a fellow hence will be allocated an office but not Living Space')
+    def test_random_allocations_of_living_space(self):  # TODO
+        person_name = 'John Doe'
+        self.amity.random_living_space(person_name)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('Successful.', message)
 
-    def test_reallocate_person_to_different_living_space_if_fellow(self):
-        self.assertEqual(self.amity.reallocate_person('Lee ndungu', 'php'),
-                         'Jane Doe has been reallocated to a new living space: php')
+    def test_add_person_fellow_no_accomodation(self):  # TODO
+        count = len(self.amity.all_unallocated)
+        self.amity.add_person('F', 'Mary mary')
+        self.assertGreaterEqual(len(self.amity.all_unallocated), count)
 
-    def test_reallocate_person_to_different_office_if_fellow_or_staff(self):
-            self.assertEqual(self.amity.reallocate_person('Jane Doe', 'camelot'),
-                             'Jane Doe has been reallocated to a new Office space: camelot')
+    def test_reallocate_person(self):
+        person_name = 'Daisy Wanjiru'
+        new_room_name = 'Narnia'
+        self.amity.reallocate_staff(person_name, new_room_name)
+        self.assertIn(person_name, self.amity.all_allocations['office']['Narnia'])
 
-    def test_rejects_reallocate_person_to_different_living_space_if_staff(self):
-            self.assertEqual(self.amity.reallocate_person('Jane Doe', 'camelot'),
-                             'Jane Doe can not be reallocated to a living space')
+    def test_reallocate_fellow(self):
+        person_name = 'Maureen Wangui'
+        new_room_name = 'scala'
+        self.amity.reallocate_fellow(person_name, new_room_name)
+        self.assertIn(person_name, self.amity.all_allocations['living_space']['scala'])
 
-    def test_print_allocations_onto_the_screen(self):
-        '''
-        Test if prints allocations onto the screen (both staff and fellows). 
-        It also specifies if they are allocated an office or a living space or both.
-        '''
-        self.assertEqual(self.amity.print_allocations(), 'These are all the allocations in Amity')
+    def test_remove_person_from_previous_allocation_office(self):  # TODO
+        person_name = 'Maureen Wangui'
+        self.amity.remove_person_from_previous_allocation_office(person_name)
+        self.assertNotIn(person_name, self.amity.all_allocations['office']['camelot'])
+        print('yryeye')
 
-    def test_print_unallocated_onto_the_screen(self):
-        '''
-        Test if prints unallocated people onto the screen (both staff and fellows)
-        '''
-        self.assertEqual(self.amity.print_unallocated(), 'These are all the unallocated people in Amity')
+    def test_remove_person_from_previous_allocation_living_space(self):  # TODO
+        person_name = 'Maureen Wangui'
+        self.amity.remove_person_from_previous_allocation_living_space(person_name)
+        self.assertNotIn(person_name, self.amity.all_allocations['living_space']['php'])
 
-    def test_print_office(self):
-        '''
-        Prints all the people in a room if the room name provided is an Office
-        '''
-        self.assertIn(self.amity.print_room('narnia'), self.amity.all_allocations['office'].keys())
-        self.assertIn(self.amity.print_room('narnia'), 'This are all the allocations in narnia')
+    def test_print_room_living_space(self):
+        room_name = 'php'
+        self.amity.print_room(room_name)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('LIVING SPACE NAME: php', message)
 
-    def test_print_living_space(self):
-        '''
-        Prints all the people in a room if the room name provided is a living space
-        '''
-        self.assertIn(self.amity.print_room('Scala'), self.amity.all_allocations['living_space'].keys())
-        self.assertIn(self.amity.print_room('Scala'), 'This are all the allocations in Scala')
+    def test_print_room_office(self):
+        room_name = 'camelot'
+        self.amity.print_room(room_name)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('OFFICE NAME: camelot', message)
+
+    def test_empty_offices(self):
+        key = 'hogwarts'
+        self.amity.check_empty_offices(key)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('has no allocations at the moment...', message)
 
 if __name__ == "__main__":
     unittest.main()
