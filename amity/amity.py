@@ -10,12 +10,8 @@ class Amity(object):
         'fellow': []
         }
     all_allocations = {
-        'office': {
-
-            },
-        'living_space': {
-
-        }
+        'office': {},
+        'living_space': {}
         }
     all_unallocated = []
     all_rooms = {
@@ -96,8 +92,6 @@ class Amity(object):
                 cprint("Fellow: %s has been added ...>>" % person_name, 'cyan')
                 # Allocating fellow an office
                 self.random_office_space(person_name)
-                # No accomodation
-                self.all_unallocated.append(person_name)
 
     def random_office_space(self, person_name):
         """
@@ -124,6 +118,8 @@ class Amity(object):
                 self.all_allocations['office'][allocated_office_name].append(person_name)
             cprint("Successful.\n", 'yellow')
         else:
+            # No accomodation
+            self.all_unallocated.append(person_name)
             cprint('There are no available Offices at the momen...', 'red')
 
     def random_living_space_space(self, person_name):
@@ -149,6 +145,8 @@ class Amity(object):
                 self.all_allocations['living_space'][allocated_living_space_name].append(person_name)
             cprint("Successful.\n", 'yellow')
         else:
+            # No accomodation
+            self.all_unallocated.append(person_name)
             cprint('There are no available Living Space at the momen...', 'red')
 
     def reallocate_staff(self, person_name, new_room_name):
@@ -254,6 +252,8 @@ class Amity(object):
                 self.all_allocations['office'][room].remove(person_name)
             else:
                 continue
+        if person_name in self.all_unallocated:
+            self.all_unallocated.remove(person_name)
 
     def remove_person_from_previous_allocation_living_space(self, person_name):
         """
@@ -350,7 +350,7 @@ class Amity(object):
                 else:
                     cprint("There are no allocations at the moment...", 'white')
 
-                cprint('%'*60, 'grey')
+                cprint('%'*60, 'white')
                 cprint('...LIVING SPACE...', 'cyan')
                 if self.all_allocations['living_space']:
                     # Print all living spaces and the person names assigned to that room
@@ -379,13 +379,9 @@ class Amity(object):
             output_file.close()
             cprint('Done', 'white')
         # Print on the screen
-        elif filename is None:
+        else:
             if len(self.all_unallocated) > 0:
                 cprint(',\t'.join(map(str, self.all_unallocated)), 'cyan')
-            else:
-                cprint("There are no unallocated people at the moment...", 'white')
-        else:
-            cprint('invalid', 'red')
 
     def load_people(self, filename):
         """
@@ -424,7 +420,7 @@ class Amity(object):
             cursor = db.cursor()
 
             # Save all employees
-            print('Saving...')
+            cprint('\t \tSaving...', 'white')
             for position, names in self.all_persons.items():
                 for name in names:
                     try:
@@ -460,6 +456,21 @@ class Amity(object):
                                        (employee_id, room_id))
                     except sqlite3.IntegrityError:
                         continue
+            for room_name, person_names in self.all_allocations['living_space'].items():
+                for person_name in person_names:
+                    employee_id = cursor.execute("SELECT employee_id FROM employee WHERE name=?",
+                                                 (person_name,))
+                    for e_id in employee_id:
+                        employee_id = e_id[0]
+                    room_id = cursor.execute("SELECT room_id FROM room WHERE name=?",
+                                             (room_name,))
+                    for r_id in room_id:
+                        room_id = r_id[0]
+                    try:
+                        cursor.execute("INSERT INTO allocation VALUES (null,?,?);",
+                                       (employee_id, room_id))
+                    except sqlite3.IntegrityError:
+                        continue
             db.commit()
 
             # Save Unallocated people
@@ -474,10 +485,10 @@ class Amity(object):
                 except sqlite3.IntegrityError:
                     continue
             db.commit()
-
+            cprint('\t \t Saved...', 'white')
         except Exception as e:
             print('An error occured')
-        print('Saved...')
+            print(str(e))
         db.close_db()
 
     def load_state(self, db_name=None):
@@ -494,7 +505,7 @@ class Amity(object):
             cursor = db.cursor()
 
             # Load all employees from the Database
-            cprint('Loading Employees...\n', 'grey')
+            cprint('Loading Employees...\n', 'white')
             data = cursor.execute("SELECT name, position FROM employee")
             try:
                 for row in data:
@@ -511,7 +522,7 @@ class Amity(object):
 
             try:
                 # Load all rooms from the Database
-                cprint('Loading rooms...\n', 'grey')
+                cprint('Loading rooms...\n', 'white')
                 data = cursor.execute("SELECT name, room_type FROM room")
                 for row in data:
                     name = row[0]
@@ -527,19 +538,19 @@ class Amity(object):
 
             try:
                 # Load all allocate people from the Database
-                cprint('Loading allocations...\n', 'grey')
-                load_allocate_query = '''
-                                SELECT
-                                    employee.name,
-                                    employee.position,
-                                    room.name,
-                                    room.room_type
-                                FROM allocation
-                                LEFT OUTER JOIN employee
-                                    ON employee.employee_id = allocation.employee_id
-                                LEFT OUTER JOIN room
-                                    ON room.room_id = allocation.room_id
-                            '''
+                cprint('Loading allocations...\n', 'white')
+                load_allocate_query = """
+                    SELECT
+                        employee.name,
+                        employee.position,
+                        room.name,
+                        room.room_type
+                    FROM allocation
+                    LEFT OUTER JOIN employee
+                        ON employee.employee_id = allocation.employee_id
+                    LEFT OUTER JOIN room
+                        ON room.room_id = allocation.room_id;
+                            """
                 data = cursor.execute(load_allocate_query)
                 for row in data:
                     employee_name = row[0]
@@ -550,10 +561,12 @@ class Amity(object):
                         if room_name not in self.all_allocations['office']:
                             self.all_allocations['office'][room_name] = []
                         self.all_allocations['office'][room_name].append(employee_name)
-                    else:
-                        if room_name not in self.all_allocations['living_space'][room_name]:
+                    elif room_type == 'living_space':
+                        if room_name not in self.all_allocations['living_space']:
                             self.all_allocations['living_space'][room_name] = []
                         self.all_allocations['living_space'][room_name].append(employee_name)
+                    else:
+                        cprint('An Error Occurred...', 'red')
                 cprint('*'*40)
                 cprint('\nLoaded successfully...\n', 'white')
             except Exception as e:
@@ -561,15 +574,18 @@ class Amity(object):
                 print(str(e))
             try:
                 # load unallocated
-                cprint('Loading unallocated...', 'grey')
-                data = cursor.execute("SELECT employee_id FROM unallocated")
+                cprint('Loading unallocated...', 'white')
+                load_unallocated_query = """
+                    SELECT
+                        employee.name
+                    FROM unallocated
+                    JOIN employee
+                        ON employee.employee_id = unallocated.employee_id;
+                            """
+                data = cursor.execute(load_unallocated_query)
                 for row in data:
-                    employee_id = row[0]
-                    emp_data = cursor.execute("SELECT name FROM employee WHERE employee_id=?", (employee_id))
-                    for data in emp_data:
-                        employee_name = row[0]
-                    print(employee_name)
-                    print(self.all_unallocated.append(employee_name))
+                    employee_name = row[0]
+                    self.all_unallocated.append(employee_name)
                 cprint('*'*40)
                 cprint('\nLoaded successfully...\n', 'white')
             except:
@@ -609,7 +625,7 @@ class Amity(object):
                 else:
                     cprint("There are no staffs at the moment...", 'white')
 
-                cprint('%'*60, 'grey')
+                cprint('%'*60, 'white')
                 cprint('...Fellow...', 'cyan')
                 if self.all_persons['fellow']:
                     # Print all fellows
@@ -652,7 +668,7 @@ class Amity(object):
                 else:
                     cprint("There are no offices at the moment...", 'white')
 
-                cprint('%'*60, 'grey')
+                cprint('%'*60, 'white')
                 cprint('...LIVING SPACES...', 'cyan')
                 if self.all_rooms['living_space']:
                     # Print all fellows

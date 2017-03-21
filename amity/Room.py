@@ -1,6 +1,3 @@
-#!/usr/bin/python
-#-*- coding: utf-8 -*-
-
 class Room:
     def __init__(self):
         self.space = None

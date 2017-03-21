@@ -28,7 +28,7 @@ class Database(object):
             CREATE TABLE IF NOT EXISTS room (
             room_id  INTEGER PRIMARY KEY,
             name VARCHAR(30),
-            room_type VARCHAR(10),
+            room_type VARCHAR(20),
             unique (name, room_type));"""
         cursor.execute(sql_command)
 
@@ -46,8 +46,8 @@ class Database(object):
             CREATE TABLE IF NOT EXISTS unallocated (
             unallocated_id INTEGER PRIMARY KEY,
             employee_id INTEGER,
-            FOREIGN KEY (employee_id) REFERENCES employee(employee_id),
-            unique (employee_id));"""
+            FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
+            );"""
         cursor.execute(sql_command)
 
     def close_db(self):
