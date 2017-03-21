@@ -52,3 +52,41 @@ class Database(object):
 
     def close_db(self):
         return self.conn.close()
+
+    def query_allocation_records(self):
+        # 
+        cursor = self.cursor()
+        load_allocation_query = """
+            SELECT
+                employee.name,
+                employee.position,
+                room.name,
+                room.room_type
+            FROM allocation
+            LEFT OUTER JOIN employee
+                ON employee.employee_id = allocation.employee_id
+            LEFT OUTER JOIN room
+                ON room.room_id = allocation.room_id;"""
+        return cursor.execute(load_allocation_query)
+
+    def query_unallocated_records(self):
+        #
+        cursor = self.cursor()
+        load_unallocated_query = """
+            SELECT
+                employee.name
+            FROM unallocated
+            JOIN employee
+                ON employee.employee_id = unallocated.employee_id;"""
+        return cursor.execute(load_unallocated_query)
+
+    def load_all_persons_from_db(self):
+        cursor = self.cursor()
+        data = "SELECT name, position FROM employee"
+        return cursor.execute(data)
+
+    def load_all_rooms_from_db(self):
+        cursor = self.cursor()
+        rooms_query = "SELECT name, room_type FROM room"
+        return cursor.execute(rooms_query)
+

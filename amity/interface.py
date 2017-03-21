@@ -65,7 +65,7 @@ border = colored("*" * 20, 'red').center(80)
 def introduction():
     print(border)
     cprint(figlet_format('AMITY', font='colossal'),
-           'blue', attrs=['bold'])
+           'cyan', attrs=['bold'])
 
     print(__doc__)
     print(border)
@@ -151,11 +151,12 @@ class Amity(cmd.Cmd):
 
     def do_quit(self, arg):
         """Quits out of Interactive Mode."""
-        cprint('\t\t\tExitting Amity...Bye', 'magenta')
+        cprint('\t\t\tExitting Amity...Bye', 'cyan')
         option = input("Do you want to save any updates in Amity? (y/n): ")
         if option is 'y' or 'Y':
             print("\t\t\tSaving...")
-            self.amity.save_state()
+            db_name = 'Amity'
+            self.amity.save_state(db_name)
             cprint('\t\t\tSaved...Bye', 'magenta')
         else:
             cprint('\t\t\t...Bye', 'magenta')
