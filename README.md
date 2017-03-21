@@ -1,5 +1,5 @@
 # cp1-amity-allocation
-This application allows one to create a list of rooms, add person, load the data stored in the application to a database among other functions.
+A command-line application of a room allocation system for one of Andela’s facilities called Amity. This application allows one to create a list of rooms, add person, load the data stored in the application to a database among other functions.
 
 The building blocks are:
   * Python 3
