@@ -1,7 +1,9 @@
 import unittest
 import sys
-from io import StringIO
 import sqlite3
+import os
+
+from io import StringIO
 
 from amity.amity import Amity
 from amity.database import Database
@@ -14,7 +16,7 @@ class Test_Amity(unittest.TestCase):
         self.amity = Amity()
         self.held, sys.stdout = sys.stdout, StringIO()
         self.amity.all_persons = {
-                'staff': ['Daisy Wanjiru'],
+                'staff': ['Daisy Wanjiru', 'Lavender Ayodi'],
                 'fellow': ['Maureen Wangui']
             }
         self.amity.all_allocations = {
@@ -26,7 +28,7 @@ class Test_Amity(unittest.TestCase):
                     'php': ['Maureen Wangui']
                 }
                 }
-        self.amity.all_unallocated = []
+        self.amity.all_unallocated = ['Lavender Ayodi']
         self.amity.all_rooms = {
                 'living_space': ['php', 'scala'],
                 'office': ['hogwarts', 'Narnia', 'camelot']
@@ -34,7 +36,7 @@ class Test_Amity(unittest.TestCase):
 
     def test_create_living_space(self):  # pass
         '''
-        This tests if the length of the living space list of living space 
+        This tests if the length of the living space list of living space
         increases after the new rooms have been created
 
         '''
@@ -80,7 +82,7 @@ class Test_Amity(unittest.TestCase):
         counter = len(self.amity.all_persons['staff'])
         # Adding a new person
         self.amity.add_person('S', ['John Doe'], 'N')
-        # Checks the length of staff list after adding new rooms and confirms 
+        # Checks the length of staff list after adding new rooms and confirms
         # if it is greater than the previous
         self.assertGreater(len(self.amity.all_persons['staff']), counter)
 
@@ -102,7 +104,8 @@ class Test_Amity(unittest.TestCase):
         '''
         self.amity.add_person('S', 'Clare C', 'Y')
         message = sys.stdout.getvalue().strip()
-        self.assertIn('...Staff can not be allocated a Living Space..', message)
+        self.assertIn('...Staff can not be allocated a Living Space..',
+                      message)
 
     def test_add_person_fellow_allocates_accomodation(self):  # pass
         self.amity.add_person('F', 'Lee ndungu', 'Y')
@@ -124,24 +127,28 @@ class Test_Amity(unittest.TestCase):
         person_name = 'Daisy Wanjiru'
         new_room_name = 'Narnia'
         self.amity.reallocate_staff(person_name, new_room_name)
-        self.assertIn(person_name, self.amity.all_allocations['office']['Narnia'])
+        self.assertIn(person_name,
+                      self.amity.all_allocations['office']['Narnia'])
 
     def test_reallocate_fellow(self):
         person_name = 'Maureen Wangui'
         new_room_name = 'scala'
         self.amity.reallocate_fellow(person_name, new_room_name)
-        self.assertIn(person_name, self.amity.all_allocations['living_space']['scala'])
+        self.assertIn(person_name,
+                      self.amity.all_allocations['living_space']['scala'])
 
     def test_remove_person_from_previous_allocation_office(self):  # TODO
         person_name = 'Maureen Wangui'
         self.amity.remove_person_from_previous_allocation_office(person_name)
-        self.assertNotIn(person_name, self.amity.all_allocations['office']['camelot'])
-        print('yryeye')
+        self.assertNotIn(person_name,
+                         self.amity.all_allocations['office']['camelot'])
 
     def test_remove_person_from_previous_allocation_living_space(self):  # TODO
         person_name = 'Maureen Wangui'
-        self.amity.remove_person_from_previous_allocation_living_space(person_name)
-        self.assertNotIn(person_name, self.amity.all_allocations['living_space']['php'])
+        self.amity.remove_person_from_previous_allocation_living_space(
+            person_name)
+        self.assertNotIn(person_name,
+                         self.amity.all_allocations['living_space']['php'])
 
     def test_print_room_living_space(self):
         room_name = 'php'
@@ -160,6 +167,94 @@ class Test_Amity(unittest.TestCase):
         self.amity.check_empty_offices(key)
         message = sys.stdout.getvalue().strip()
         self.assertIn('has no allocations at the moment...', message)
+
+    def test_print_allocations_on_screen(self):
+        filename = None
+        self.amity.print_allocations(filename)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('Daisy Wanjiru,\tMaureen Wangui', message)
+
+    def test_print_unallocated_on_screen(self):
+        filename = None
+        self.amity.print_unallocated(filename)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('Lavender Ayodi', message)
+
+    def test_load_people_from_a_txt_file(self):
+        filename = 'Load_People'
+        self.amity.load_people(filename)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('Successful', message)
+
+    def test_save_state(self):
+        db_name = 'testAmityDB'
+        self.amity.save_state(db_name)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('Saved', message)
+
+    def test_load_all_persons_from_db(self):
+        db_name = 'Amity.db'
+        db = Database(db_name)
+        person_data = db.load_all_persons_from_db()
+        self.amity.load_all_persons_from_db(person_data)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('Loaded successfully...', message)
+
+    def test_load_all_rooms_from_db(self):
+        db_name = 'Amity.db'
+        db = Database(db_name)
+        room_data = db.load_all_rooms_from_db()
+        self.amity.load_all_rooms_from_db(room_data)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('Loaded successfully...', message)
+
+    def test_load_all_allocations_from_db(self):
+        db_name = 'Amity.db'
+        db = Database(db_name)
+        allocation_data = db.query_allocation_records()
+        self.amity.load_all_allocations_from_db(allocation_data)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('Loaded successfully...', message)
+
+    def test_load_unallocated_people_data_from_db(self):
+        db_name = 'Amity.db'
+        db = Database(db_name)
+        unallocate_data = db.query_unallocated_records()
+        self.amity.load_unallocated_people_data_from_db(unallocate_data)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('Loaded successfully...', message)
+
+    def test_load_state(self):
+        filename = 'Amity'
+        self.amity.load_state(filename)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('Loaded successfully...', message)
+
+    def test_print_all_persons_on_screen(self):
+        filename = None
+        self.amity.print_all_persons(filename)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('Lavender Ayodi', message)
+
+    def test_print_all_persons_into_a_txt_file(self):
+        filename = 'test_all_person'
+        self.amity.print_all_persons(filename)
+        for line in filename:
+            if 'Lavender Ayodi' in line:
+                return True
+
+    def test_print_all_rooms_on_screen(self):
+        filename = None
+        self.amity.print_all_rooms(filename)
+        message = sys.stdout.getvalue().strip()
+        self.assertIn('hogwarts', message)
+
+    def test_print_all_rooms_into_a_txt_file(self):
+        filename = 'test_all_rooms'
+        self.amity.print_all_rooms(filename)
+        for line in filename:
+            if 'hogwarts' in line:
+                return True
 
 if __name__ == "__main__":
     unittest.main()
