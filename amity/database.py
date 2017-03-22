@@ -54,7 +54,7 @@ class Database(object):
         return self.conn.close()
 
     def query_allocation_records(self):
-        # 
+        #
         cursor = self.cursor()
         load_allocation_query = """
             SELECT
@@ -89,4 +89,3 @@ class Database(object):
         cursor = self.cursor()
         rooms_query = "SELECT name, room_type FROM room"
         return cursor.execute(rooms_query)
-
