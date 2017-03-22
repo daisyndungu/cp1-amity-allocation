@@ -1,7 +1,9 @@
 import sqlite3
 import random
+
 from termcolor import cprint, colored
-from database import Database
+
+from amity.database import Database
 
 
 class Amity(object):
@@ -201,7 +203,7 @@ class Amity(object):
             cprint('%s has been reallocated successfully...', 'white')
 
         elif new_room_name in self.all_allocations['office'].keys() and len(
-                self.all_allocations['office'][new_room_name]) > 6:
+                self.all_allocations['office'][new_room_name]) >= 6:
             cprint('This room is already full. Please choose another room.\n',
                    'red')
 
@@ -214,6 +216,66 @@ class Amity(object):
             cprint('%s has been reallocated successfully...\n', 'white')
         else:
             print("An error occured...")
+
+    def reallocate_fellow(self, person_name, new_room_name):
+        """
+        Reallocates a fellow to a new office or new living space
+        """
+        # Reallocate a fellow to a new office
+        if new_room_name in self.all_rooms['office']:
+            if new_room_name in self.all_allocations['office'].keys() and len(
+                    self.all_allocations['office'][new_room_name]) < 6:
+                # Delete previous allocation
+                self.remove_person_from_previous_allocation_office(person_name)
+                # Reallocate to the new room
+                (self.all_allocations['office'][new_room_name].
+                    append(person_name))
+                cprint('%s has been reallocated successfully...'
+                       % person_name, 'white')
+            elif new_room_name in self.all_allocations['office'].keys() and \
+                    len(self.all_allocations['office'][new_room_name]) >= 6:
+                cprint('This room is already full. Please choose another room.\
+                       \n', 'red')
+            elif new_room_name not in self.all_allocations['office'].keys():
+                # Delete previous allocation
+                self.remove_person_from_previous_allocation_office(person_name)
+                # Reallocate to the new room
+                self.all_allocations['office'][new_room_name] = []
+                (self.all_allocations['office'][new_room_name].
+                    append(person_name))
+                cprint('%s has been reallocated successfully...\n'
+                       % person_name, 'white')
+
+        # Reallocate a fellow to a new Living_space
+        elif new_room_name in self.all_rooms['living_space']:
+            if new_room_name in self.all_allocations['living_space'].keys() \
+              and len(self.all_allocations['living_space'][new_room_name]) < 4:
+                # Reallocate to the new room
+                (self.remove_person_from_previous_allocation_living_space(
+                    person_name))
+                # Delete previous allocation
+                (self.all_allocations['living_space'][new_room_name].
+                    append(person_name))
+                cprint('%s has been reallocated successfully...'
+                       % person_name, 'white')
+            elif (new_room_name in self.all_allocations['living_space'].
+                  keys() and len(self.all_allocations['living_space']
+                  [new_room_name]) >= 4):
+                cprint('This room is already full. Please choose another room.\
+                       \n', 'red')
+            elif (new_room_name not in self.all_allocations['living_space'].
+                  keys()):
+                # Delete previous allocation
+                (self.remove_person_from_previous_allocation_living_space(
+                    person_name))
+                # Reallocate to the new room
+                self.all_allocations['living_space'][new_room_name] = []
+                (self.all_allocations['living_space'][new_room_name].append(
+                    person_name))
+                cprint('%s has been reallocated successfully...\n'
+                       % person_name, 'white')
+        else:
+            print('An error occurred...')
 
     def remove_person_from_previous_allocation_office(self, person_name):
         """
@@ -238,66 +300,6 @@ class Amity(object):
                 continue
         if person_name in self.all_unallocated:
             self.all_unallocated.remove(person_name)
-
-    def reallocate_fellow(self, person_name, new_room_name):
-        """
-        Reallocates a fellow to a new office or new living space
-        """
-        # Reallocate a fellow to a new office
-        if new_room_name in self.all_rooms['office']:
-            if new_room_name in self.all_allocations['office'].keys() and len(
-                    self.all_allocations['office'][new_room_name]) < 6:
-                # Delete previous allocation
-                self.remove_person_from_previous_allocation_office(person_name)
-                # Reallocate to the new room
-                (self.all_allocations['office'][new_room_name].
-                    append(person_name))
-                cprint('%s has been reallocated successfully...'
-                       % person_name, 'white')
-            elif new_room_name in self.all_allocations['office'].keys() and \
-                    len(self.all_allocations['office'][new_room_name]) > 6:
-                cprint('This room is already full. Please choose \
-                        another room.\n', 'red')
-            elif new_room_name not in self.all_allocations['office'].keys():
-                # Delete previous allocation
-                self.remove_person_from_previous_allocation_office(person_name)
-                # Reallocate to the new room
-                self.all_allocations['office'][new_room_name] = []
-                (self.all_allocations['office'][new_room_name].
-                    append(person_name))
-                cprint('%s has been reallocated successfully...\n'
-                       % person_name, 'white')
-
-        # Reallocate a fellow to a new Living_space
-        elif new_room_name in self.all_rooms['living_space']:
-            if new_room_name in self.all_allocations['living_space'].keys() \
-              and len(self.all_allocations['living_space'][new_room_name]) < 6:
-                # Reallocate to the new room
-                (self.remove_person_from_previous_allocation_living_space(
-                    person_name))
-                # Delete previous allocation
-                (self.all_allocations['living_space'][new_room_name].
-                    append(person_name))
-                cprint('%s has been reallocated successfully...'
-                       % person_name, 'white')
-            elif (new_room_name in self.all_allocations['living_space'].
-                  keys() and len(self.all_allocations['living_space']
-                  [new_room_name]) > 6):
-                cprint('This room is already full. Please choose another \
-                room.\n', 'red')
-            elif (new_room_name not in self.all_allocations['living_space'].
-                  keys()):
-                # Delete previous allocation
-                (self.remove_person_from_previous_allocation_living_space(
-                    person_name))
-                # Reallocate to the new room
-                self.all_allocations['living_space'][new_room_name] = []
-                (self.all_allocations['living_space'][new_room_name].append(
-                    person_name))
-                cprint('%s has been reallocated successfully...\n'
-                       % person_name, 'white')
-        else:
-            print('An error occurred...')
 
     def reallocate_person(self, person_name, new_room_name):
         """
@@ -486,7 +488,7 @@ class Amity(object):
             cursor = db.cursor()
 
             # Save all employees
-            cprint('\t \tSaving...', 'white')
+            cprint('\t \tSaving to %s...' % db_name, 'white')
             for position, names in self.all_persons.items():
                 for name in names:
                     try:
@@ -561,7 +563,7 @@ class Amity(object):
                 except sqlite3.IntegrityError:
                     continue
             db.commit()
-            cprint('\t \t Saved...', 'white')
+            cprint('\t \t *Saved successfully...', 'white')
         except Exception as e:
             print('An error occured')
             print(str(e))
@@ -677,17 +679,17 @@ class Amity(object):
             if filename:
                 filepath = 'files/' + filename + '.txt'
                 output_file = open(filepath, "w")
-                print("Printing to %s..." % filename)
+                print("Printing to %s...\n" % filename)
                 output_file.write('\t\t...STAFF...\n')
                 for items in self.all_persons['staff']:
-                    item = ', '.join(items)
+                    item = ''.join(items)
                     output_file.write('\n------------------\n' + item + '\n\n')
                 output_file.write('\t\t...FELLOW...\n')
                 for items in self.all_persons['fellow']:
-                    item = ', '.join(items)
+                    item = ''.join(items)
                     output_file.write('\n------------------\n' + item + '\n\n')
                 output_file.close()
-                cprint('Done.', 'white')
+                cprint('***Done***', 'white')
             else:
                 cprint('...staff...', 'cyan')
                 if self.all_persons['staff']:
@@ -723,14 +725,14 @@ class Amity(object):
                 print("Printing to %s..." % filename)
                 output_file.write('\t\t...OFFICE...\n')
                 for items in self.all_rooms['office']:
-                    item = ', '.join(items)
+                    item = ''.join(items)
                     output_file.write('\n------------------\n' + item + '\n\n')
                 output_file.write('\t\t...LIVING SPACE...\n')
                 for items in self.all_rooms['living_space']:
-                    item = ', '.join(items)
+                    item = ''.join(items)
                     output_file.write('\n------------------\n' + item + '\n\n')
                 output_file.close()
-                cprint('Done.', 'white')
+                cprint('***Done***', 'white')
             else:
                 cprint('...OFFICES...', 'cyan')
                 if self.all_rooms['office']:
