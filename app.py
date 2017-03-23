@@ -3,7 +3,7 @@
 This example uses docopt with the built in cmd module to demonstrate an
 interactive command application.
 Usage:
-    Amity create_room create_room <room_type> <room_names>...
+    Amity create_room <room_type> <room_names>...
     Amity add_person <first_name> <last_name> <position> [--a='n']
     Amity reallocate_person <first_name> <last_name> <new_room_name>
     Amity print_room <room_name>
@@ -23,7 +23,7 @@ Options:
 import sys
 import cmd
 from docopt import docopt, DocoptExit
-from amity import Amity
+from amity.amity import Amity
 
 from pyfiglet import Figlet, figlet_format
 from termcolor import colored, cprint
