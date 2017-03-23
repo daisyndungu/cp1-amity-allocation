@@ -6,6 +6,8 @@ from termcolor import cprint, colored
 
 from amity.database.database_file import Database
 
+from amity.Person import Fellow, Staff
+
 
 class Amity(object):
     all_persons = {
@@ -63,7 +65,8 @@ class Amity(object):
         else:
             # Adding a staff and allocating them an office space
             if position == 'S' and want_accomodation == 'N':
-                self.all_persons['staff'].append(person_name)
+                self.all_persons['staff'].append(
+                    Staff(person_name).__dict__['name'])
                 cprint("Staff: %s has been added...>>\n" % person_name, 'cyan')
                 # Allocating fellow an office
                 self.random_office_space(person_name)
@@ -82,7 +85,8 @@ class Amity(object):
             # Adding a fellow and allocating them a living space
             # and an office space
             elif position == 'F' and want_accomodation == 'Y':
-                self.all_persons['fellow'].append(person_name)
+                self.all_persons['fellow'].append(
+                    Fellow(person_name).__dict__['name'])
                 cprint("Fellow: %s has been added...>>" % person_name, 'cyan')
                 # Allocating fellow an office
                 self.random_office_space(person_name)
@@ -472,10 +476,7 @@ class Amity(object):
         """
         Persists all the data stored in the app to a SQLite database
         """
-        if db_name:
-            db_name = db_name + '.db'
-        else:
-            db_name = 'Amity.db'
+        db_name = db_name + '.db' if db_name else 'Amity.db'
 
         try:
             db_path = 'amity/database/' + db_name
