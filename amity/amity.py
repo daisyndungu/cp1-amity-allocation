@@ -3,7 +3,7 @@ import random
 
 from termcolor import cprint, colored
 
-from amity.database import Database
+from database import Database
 
 
 class Amity(object):
@@ -20,13 +20,6 @@ class Amity(object):
         'living_space': [],
         'office': []
         }
-
-    def __init__(self):
-        self.list_length = 0
-        self.person_identifier = []
-        self.new_room_name = ''
-        self.room_type = ''
-        self.room_names = []
 
     def create_room(self, room_type, room_name):
         """
@@ -200,7 +193,8 @@ class Amity(object):
             self.remove_person_from_previous_allocation_office(person_name)
             # Reallocate to the new room
             self.all_allocations['office'][new_room_name].append(person_name)
-            cprint('%s has been reallocated successfully...', 'white')
+            cprint('%s has been reallocated successfully...' % person_name, 
+                   'white')
 
         elif new_room_name in self.all_allocations['office'].keys() and len(
                 self.all_allocations['office'][new_room_name]) >= 6:
