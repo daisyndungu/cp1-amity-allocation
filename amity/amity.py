@@ -31,72 +31,79 @@ class Amity(object):
         Create a list of rooms depending on the user's input
 
         """
-        if room_name in self.all_rooms['office'] or room_name in \
-           self.all_rooms['living_space']:
-            cprint("%s room already exists..." % room_name, 'red')
-        else:
-            if room_type == 'O':
-                new_office = Office(room_name)
-                self.all_rooms['office'].append(new_office)
-                cprint("An Office: %s has been created...>>"
-                       % new_office.name, 'cyan')
-            elif room_type == 'L':
-                self.all_rooms['living_space'].append(LivingSpace(room_name))
-                cprint("An Living Space: %s has been created...>>"
-                       % room_name, 'cyan')
-            else:
-                cprint("invalid input. Type should be 'o' for office(s) or 'l'\
-                    for living_space(s)", 'red')
+        if room_type not in ['L', 'O']:
+            cprint("invalid input. Type should be 'o' for office(s) or 'l'\
+                for living_space(s)", 'red')
+            return
 
-    def add_person(self, position, person_name, want_accomodation=None):
+        for room in self.all_rooms['office'] + self.all_rooms['living_space']:
+            if room.name == room_name:
+                cprint("%s room already exists..." % room_name, 'red')
+                return
+
+        if room_type == 'O':
+            new_office = Office(room_name)
+            self.all_rooms['office'].append(new_office)
+            cprint("An Office: %s has been created...>>"
+                   % new_office.name, 'cyan')
+        elif room_type == 'L':
+            self.all_rooms['living_space'].append(LivingSpace(room_name))
+            cprint("An Living Space: %s has been created...>>"
+                   % room_name, 'cyan')
+
+    def add_person(self, position, person_name, want_accomodation):
         """
 
         Add a person/employee and allocate them a room and/or living space
         depending on their position or preference(fellows)
 
         """
-        # Check if staff exists
-        if (person_name in self.all_persons['staff'] +
-           self.all_persons['fellow']):
-            cprint("...Employee: %s already exists..." % person_name, 'cyan')
-        else:
-            # Adding a staff and allocating them an office space
-            if position == 'S' and want_accomodation == 'N':
-                self.all_persons['staff'].append(
-                    Staff(person_name).__dict__['name'])
-                cprint("Staff: %s has been added...>>\n" % person_name, 'cyan')
-                # Allocating fellow an office
-                self.random_office_space(person_name)
+        # Check if person exists
+        for person in self.all_persons['staff'] + self.all_persons['fellow']:
+            if person.name == person_name:
+                cprint("...Employee: %s already exists..."
+                       % person_name, 'cyan')
+                return
 
-            # Adding a fellow and allocating an office space
-            # but deny them a living space
-            elif position == 'S' and want_accomodation == 'Y':
-                self.all_persons['staff'].append(person_name)
-                cprint("Staff: %s has been added ...>>" % person_name, 'cyan')
-                # Allocating staff an office
-                self.random_office_space(person_name)
-                # Reject request for accomodation
-                cprint("...Staff can not be allocated a Living Space...\
-                ", 'white')
+        # Adding a staff and allocating them an office space
+        if position == 'S' and want_accomodation == 'N':
+            new_person = Staff(person_name)
+            self.all_persons['staff'].append(new_person)
+            cprint("Staff: %s has been added...>>\n" % person_name, 'cyan')
+            # Allocating fellow an office
+            self.random_office_space(person_name)
 
-            # Adding a fellow and allocating them a living space
-            # and an office space
-            elif position == 'F' and want_accomodation == 'Y':
-                self.all_persons['fellow'].append(
-                    Fellow(person_name).__dict__['name'])
-                cprint("Fellow: %s has been added...>>" % person_name, 'cyan')
-                # Allocating fellow an office
-                self.random_office_space(person_name)
-                # Allocating fellow a living space
-                self.random_living_space(person_name)
+        # Adding a fellow and allocating an office space
+        # but deny them a living space
+        elif position == 'S' and want_accomodation == 'Y':
+            new_person = Staff(person_name)
+            self.all_persons['staff'].append(new_person)
+            cprint("Staff: %s has been added ...>>" % person_name, 'cyan')
+            # Allocating staff an office
+            self.random_office_space(person_name)
+            # Reject request for accomodation
+            cprint("...Staff can not be allocated a Living Space...\
+            ", 'white')
 
-            # Adding a fellow and allocating them an office space only
-            elif position == 'F' and want_accomodation == 'N':
-                self.all_unallocated.append(person_name)
-                self.all_persons['fellow'].append(person_name)
-                cprint("Fellow: %s has been added ...>>" % person_name, 'cyan')
-                # Allocating fellow an office
-                self.random_office_space(person_name)
+        # Adding a fellow and allocating them a living space
+        # and an office space
+        elif position == 'F' and want_accomodation == 'Y':
+            new_person = Fellow(person_name, want_accomodation)
+            self.all_persons['fellow'].append(new_person)
+            cprint("Fellow: %s has been added...>>" % person_name, 'cyan')
+            # Allocating fellow an office
+            self.random_office_space(person_name)
+            # Allocating fellow a living space
+            self.random_living_space(person_name)
+
+        # Adding a fellow and allocating them an office space only
+        elif position == 'F' and want_accomodation == 'N':
+            new_person = Fellow(person_name)
+            self.all_unallocated.append(new_person)
+            self.all_persons['fellow'].append(new_person)
+            cprint("Fellow: %s has been added ...>>" % person_name, 'cyan')
+            # Allocating fellow an office
+            self.random_office_space(person_name)
 
     def random_office_space(self, person_name):
         """
@@ -105,27 +112,15 @@ class Amity(object):
         """
         if self.all_rooms['office']:
             cprint('Allocating an Office...\n', 'white')
-            available_room = []
-            for room_name in self.all_allocations['office'].keys():
-                if len(self.all_allocations['office'][room_name]) < 6:
-                    available_room.append(room_name)
+            available_office = []
+            for office in self.all_rooms['office']:
+                if len(office.occupants) < 6:
+                    available_office.append(office)
                 else:
                     continue
-            room_name = [room_name for room_name in self.all_rooms['office'] if
-                         room_name not in self.all_allocations['office'].keys()
-                         ]
-            available_room.extend(room_name)
-            if available_room:
-                allocated_office_name = random.choice(available_room)
-                if allocated_office_name in self.all_allocations[
-                                                                'office'
-                                                                ].keys():
-                    (self.all_allocations['office'][allocated_office_name].
-                     append(person_name))
-                else:
-                    self.all_allocations['office'][allocated_office_name] = []
-                    (self.all_allocations['office'][allocated_office_name].
-                     append(person_name))
+            if available_office:
+                allocated_office_name = random.choice(available_office)
+                allocated_office_name.occupants.append(person_name)
                 cprint("Successful.\n", 'yellow')
             else:
                 cprint('There are no available office at the moment...\n',
@@ -147,29 +142,15 @@ class Amity(object):
         """
         if self.all_rooms['living_space']:
             cprint('Allocating a living Space...\n', 'white')
-            available_room = []
-            for room_name in self.all_allocations['living_space'].keys():
-                if len(self.all_allocations['living_space'][room_name]) < 4:
-                    available_room.append(room_name)
-                else:
-                    continue
-            room_name = [room_name for room_name in
-                         self.all_rooms['living_space']
-                         if room_name not in
-                         self.all_allocations['living_space'].keys()]
-            available_room.extend(room_name)
-            if available_room:
-                allocated_living_space_name = random.choice(available_room)
-                if (allocated_living_space_name in
-                   self.all_allocations['living_space'].keys()):
-                    (self.all_allocations['living_space']
-                     [allocated_living_space_name].append(person_name))
-                else:
-                    self.all_allocations['living_space'
-                                         ][allocated_living_space_name] = []
-                    self.all_allocations['living_space'
-                                         ][allocated_living_space_name].append(
-                                            person_name)
+            available_living_space = []
+            for living_space in self.all_rooms['living_space']:
+                if len(living_space.occupants) < 4:
+                    available_living_space.append(living_space)
+
+            if available_living_space:
+                allocated_living_space = random.choice(
+                    available_living_space)
+                allocated_living_space.occupants.append(person_name)
                 cprint("Successful.\n", 'yellow')
             else:
                 cprint('There are no available living space at the moment...\n\
@@ -689,8 +670,8 @@ class Amity(object):
                 cprint('...staff...', 'cyan')
                 if self.all_persons['staff']:
                     # Print all staffs
-                    for value in self.all_persons['staff']:
-                        cprint(''.join(map(str, value)), 'cyan')
+                    for staff in self.all_persons['staff']:
+                        cprint(''.join(map(str, staff.name)), 'cyan')
                 else:
                     cprint("There are no staffs at the moment...", 'white')
 
@@ -698,8 +679,8 @@ class Amity(object):
                 cprint('...Fellow...', 'cyan')
                 if self.all_persons['fellow']:
                     # Print all fellows
-                    for value in self.all_persons['fellow']:
-                        cprint(''.join(map(str, value)), 'cyan')
+                    for fellow in self.all_persons['fellow']:
+                        cprint(''.join(map(str, fellow.name)), 'cyan')
                 else:
                     cprint("There are no fellows at the moment...", 'white')
         except:

@@ -7,6 +7,8 @@ from io import StringIO
 
 from ..amity import Amity
 from amity.database.database_file import Database
+from amity.Person import Fellow, Staff
+from amity.Room import LivingSpace, Office
 
 
 class Test_Amity(unittest.TestCase):
@@ -16,8 +18,8 @@ class Test_Amity(unittest.TestCase):
         self.amity = Amity()
         self.held, sys.stdout = sys.stdout, StringIO()
         self.amity.all_persons = {
-                'staff': ['Daisy Wanjiru', 'Lavender Ayodi'],
-                'fellow': ['Maureen Wangui']
+                'staff': [Staff('Daisy Wanjiru'), Staff('Lavender Ayodi')],
+                'fellow': [Fellow('Maureen Wangui')]
             }
         self.amity.all_allocations = {
                 'office': {
@@ -30,8 +32,9 @@ class Test_Amity(unittest.TestCase):
                 }
         self.amity.all_unallocated = ['Lavender Ayodi']
         self.amity.all_rooms = {
-                'living_space': ['php', 'scala'],
-                'office': ['hogwarts', 'Narnia', 'camelot']
+                'living_space': [LivingSpace('php'), LivingSpace('scala')],
+                'office': [Office('hogwarts'),
+                           Office('Narnia'), Office('camelot')]
                 }
 
     def test_create_living_space(self):
@@ -118,14 +121,14 @@ class Test_Amity(unittest.TestCase):
         self.assertIn('Lee ndungu has been added...', message)
 
     def test_random_allocations_of_living_space(self):
-        person_name = 'John Doe'
-        self.amity.random_living_space(person_name)
+        fellow = Fellow('John Doe')
+        self.amity.random_living_space(fellow)
         message = sys.stdout.getvalue().strip()
         self.assertIn('Successful.', message)
 
     def test_add_person_fellow_no_accomodation(self):
         count = len(self.amity.all_unallocated)
-        self.amity.add_person('F', 'Mary mary')
+        self.amity.add_person('F', 'Mary mary', 'N')
         self.assertGreaterEqual(len(self.amity.all_unallocated), count)
 
     def test_rejects_person_if_they_already_exists(self):

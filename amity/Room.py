@@ -11,7 +11,7 @@ class Room:
 
 class LivingSpace(Room):
     def __init__(self, room_name):
-        super(LivingSpace, self).__init__(room_name, 'living_space', space=4)
+        super(LivingSpace, self).__init__(room_name, 'living_space', 4)
 
 
 class Office(Room):
