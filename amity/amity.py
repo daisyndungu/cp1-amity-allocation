@@ -7,6 +7,7 @@ from termcolor import cprint, colored
 from amity.database.database_file import Database
 
 from amity.Person import Fellow, Staff
+from amity.Room import LivingSpace, Office
 
 
 class Amity(object):
@@ -30,26 +31,22 @@ class Amity(object):
         Create a list of rooms depending on the user's input
 
         """
-        if room_type == 'O':
-            if room_name in self.all_rooms['office'] or room_name in \
-                    self.all_rooms['living_space']:
-                cprint("%s room already exists..." % room_name, 'red')
-            else:
-                self.all_rooms['office'].append(room_name)
+        if room_name in self.all_rooms['office'] or room_name in \
+           self.all_rooms['living_space']:
+            cprint("%s room already exists..." % room_name, 'red')
+        else:
+            if room_type == 'O':
+                new_office = Office(room_name)
+                self.all_rooms['office'].append(new_office)
                 cprint("An Office: %s has been created...>>"
-                       % room_name, 'cyan')
-
-        elif room_type == 'L':
-            if room_name in self.all_rooms['living_space'] or room_name in \
-                 self.all_rooms['office']:
-                cprint("%s room already exists..." % room_name, 'red')
-            else:
-                self.all_rooms['living_space'].append(room_name)
+                       % new_office.name, 'cyan')
+            elif room_type == 'L':
+                self.all_rooms['living_space'].append(LivingSpace(room_name))
                 cprint("An Living Space: %s has been created...>>"
                        % room_name, 'cyan')
-        else:
-            cprint("invalid input. Type should be 'o' for office(s) or 'l'\
-                 for living_space(s)", 'red')
+            else:
+                cprint("invalid input. Type should be 'o' for office(s) or 'l'\
+                    for living_space(s)", 'red')
 
     def add_person(self, position, person_name, want_accomodation=None):
         """
@@ -735,8 +732,8 @@ class Amity(object):
                 cprint('...OFFICES...', 'cyan')
                 if self.all_rooms['office']:
                     # Print all staffs
-                    for value in self.all_rooms['office']:
-                        cprint(''.join(map(str, value)), 'cyan')
+                    for office in self.all_rooms['office']:
+                        cprint(''.join(map(str, office.name)), 'cyan')
                 else:
                     cprint("There are no offices at the moment...", 'white')
 
@@ -744,8 +741,8 @@ class Amity(object):
                 cprint('...LIVING SPACES...', 'cyan')
                 if self.all_rooms['living_space']:
                     # Print all fellows
-                    for value in self.all_rooms['living_space']:
-                        cprint(''.join(map(str, value)), 'cyan')
+                    for living_space in self.all_rooms['living_space']:
+                        cprint(''.join(map(str, living_space.name)), 'cyan')
                 else:
                     cprint("There are no living_spaces at the moment", 'white')
         except:

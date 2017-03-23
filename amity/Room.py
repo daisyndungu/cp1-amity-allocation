@@ -5,12 +5,15 @@ class Room:
         self.room_type = room_type
         self.occupants = []
 
+    def __repr__(self):
+        return self.name
 
-class Living_Space(Room):
+
+class LivingSpace(Room):
     def __init__(self, room_name):
-        super(Room, self).__init__(room_name, 'living_space', space=4)
+        super(LivingSpace, self).__init__(room_name, 'living_space', space=4)
 
 
 class Office(Room):
     def __init__(self, room_name):
-        super(Room, self).__init__(room_name, 'office', space=6)
+        super(Office, self).__init__(room_name, 'office', 6)
