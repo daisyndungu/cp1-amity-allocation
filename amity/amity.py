@@ -1,9 +1,10 @@
 import sqlite3
 import random
+import os
 
 from termcolor import cprint, colored
 
-from database import Database
+from amity.database.database_file import Database
 
 
 class Amity(object):
@@ -193,7 +194,7 @@ class Amity(object):
             self.remove_person_from_previous_allocation_office(person_name)
             # Reallocate to the new room
             self.all_allocations['office'][new_room_name].append(person_name)
-            cprint('%s has been reallocated successfully...' % person_name, 
+            cprint('%s has been reallocated successfully...' % person_name,
                    'white')
 
         elif new_room_name in self.all_allocations['office'].keys() and len(
@@ -373,7 +374,7 @@ class Amity(object):
         try:
             # Printing into a txt file
             if filename:
-                filepath = 'files/' + filename + '.txt'
+                filepath = 'amity/files/' + filename + '.txt'
                 output_file = open(filepath, "w")
                 print("Printing to %s.txt ...\n\n" % filename)
                 output_file.write('\t\t...OFFICE...\n')
@@ -428,7 +429,7 @@ class Amity(object):
         """
         # Print in to a file
         if filename:
-            filepath = 'files/' + filename + '.txt'
+            filepath = 'amity/files/' + filename + '.txt'
             output_file = open(filepath, 'w')
             cprint("Printing to file %s..." % filename, 'white')
             output_file.write('\t \t \t...UNALLOCATED PEOPLE...\n')
@@ -449,7 +450,7 @@ class Amity(object):
         Collects details about employees and adds them to the system
         """
         try:
-            filepath = 'files/' + filename + '.txt'
+            filepath = 'amity/files/' + filename + '.txt'
             load_people_file = open(filepath)
             for line in load_people_file.read().splitlines():
                 if len(line) == 0:
@@ -477,12 +478,13 @@ class Amity(object):
             db_name = 'Amity.db'
 
         try:
-            db = Database(db_name)
+            db_path = 'amity/database/' + db_name
+            db = Database(db_path)
             db.create_table()
             cursor = db.cursor()
 
             # Save all employees
-            cprint('\t \tSaving to %s...' % db_name, 'white')
+            cprint('\t \tSaving to %s...' % db_path, 'white')
             for position, names in self.all_persons.items():
                 for name in names:
                     try:
@@ -558,10 +560,10 @@ class Amity(object):
                     continue
             db.commit()
             cprint('\t \t *Saved successfully...', 'white')
+            db.close_db()
         except Exception as e:
             print('An error occured')
             print(str(e))
-        db.close_db()
 
     def load_all_persons_from_db(self, person_data):
         # Load all employees from the Database
@@ -644,7 +646,8 @@ class Amity(object):
             db_name = 'Amity.db'
 
         try:
-            db = Database(db_name)
+            db_path = 'amity/database/' + db_name
+            db = Database(db_path)
             cursor = db.cursor()
             # get all people's data from db
             person_data = db.load_all_persons_from_db()
@@ -671,7 +674,7 @@ class Amity(object):
         try:
             # Printing into a txt file
             if filename:
-                filepath = 'files/' + filename + '.txt'
+                filepath = 'amity/files/' + filename + '.txt'
                 output_file = open(filepath, "w")
                 print("Printing to %s...\n" % filename)
                 output_file.write('\t\t...STAFF...\n')
@@ -714,7 +717,7 @@ class Amity(object):
         try:
             # Printing into a txt file
             if filename:
-                filepath = 'files/' + filename + '.txt'
+                filepath = 'amity/files/' + filename + '.txt'
                 output_file = open(filepath, "w")
                 print("Printing to %s..." % filename)
                 output_file.write('\t\t...OFFICE...\n')
