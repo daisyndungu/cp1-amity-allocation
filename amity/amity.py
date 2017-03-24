@@ -31,21 +31,25 @@ class Amity(object):
         Create a list of rooms depending on the user's input
 
         """
+        # Check if room type give is O for office or
+        # L for living space
         if room_type not in ['L', 'O']:
             cprint("invalid input. Type should be 'o' for office(s) or 'l'\
                 for living_space(s)", 'red')
             return
 
+        # Check if the room given already exists
         for room in self.all_rooms['office'] + self.all_rooms['living_space']:
             if room.name == room_name:
                 cprint("%s room already exists..." % room_name, 'red')
                 return
-
+        # Create office space
         if room_type == 'O':
             new_office = Office(room_name)
             self.all_rooms['office'].append(new_office)
             cprint("An Office: %s has been created...>>"
                    % new_office.name, 'cyan')
+        # Create living space
         elif room_type == 'L':
             self.all_rooms['living_space'].append(LivingSpace(room_name))
             cprint("An Living Space: %s has been created...>>"
@@ -110,6 +114,7 @@ class Amity(object):
         Select all offices with allocations less than 6 and
         those that have none at all
         """
+        # Check if there are existing offices
         if self.all_rooms['office']:
             cprint('Allocating an Office...\n', 'white')
             available_office = []
@@ -140,6 +145,7 @@ class Amity(object):
         Select all living space with allocations less than 4 and
         those that have none at all
         """
+        # Check if there are existing living space
         if self.all_rooms['living_space']:
             cprint('Allocating a living Space...\n', 'white')
             available_living_space = []
@@ -323,7 +329,7 @@ class Amity(object):
             return
 
         if current_room.occupants:
-            cprint('{} NAME: {}'.format(current_room.room_type.upper(),
+            cprint('{} NAME: {} \n'.format(current_room.room_type.upper(),
                    current_room.name), 'blue')
             cprint('*'*60, 'cyan')
             cprint(',\t'.join(current_room.occupants),
@@ -331,23 +337,52 @@ class Amity(object):
         else:
             cprint("Room %s has no allocations" % current_room.name, 'white')
 
-    def check_empty_offices(self, key):
-        """
-        Check if Office has no allocations
-        """
-        if len(self.all_allocations['office'][key]) == 0:
-            cprint('%s has no allocations at the moment...\n', 'white')
+    def print_all_living_space_allocations(self):
+        if self.all_rooms['living_space']:
+            # Print all offices and the person names
+            # assigned to different room
+            cprint('...LIVING SPACES...\n', 'cyan')
+            for room in self.all_rooms['living_space']:
+                self.print_room(room.name)
         else:
-            pass
+            cprint("There are no allocations here at the moment...\n\
+            ", 'white')
 
-    def check_empty_living_space(self, key):
-        """
-        Check if living space has no allocations
-        """
-        if len(self.all_allocations['living_space'][key]) == 0:
-            print('%s has no allocations at the moment...\n' % key)
+    def print_all_office_allocations(self):
+        if self.all_rooms['office']:
+            # Print all offices and the person names
+            # assigned to that room
+            cprint('...OFFICES...\n', 'cyan')
+            for room in self.all_rooms['office']:
+                self.print_room(room.name)
         else:
-            pass
+            cprint("There are no Offices here at the moment...\n\
+            ", 'white')
+
+    def print_all_allocations_into_a_txt_file(self, filename):
+        try:
+            # Printing into a txt file
+            filepath = 'amity/files/' + filename + '.txt'
+            output_file = open(filepath, "w")
+            print("Printing to %s.txt ...\n\n" % filename)
+            output_file.write('\t\t...OFFICE...\n')
+            for room in self.all_rooms['office']:
+                output_file.write('\n\t' + room.name + '\n' + '-'*80 + '\n')
+                if room.occupants:
+                    for person in room.occupants:
+                        output_file.write(person + ',\t')
+                output_file.write('\n')
+            output_file.write('\n\n\t\t...LIVING SPACE...\n')
+            for room in self.all_rooms['living_space']:
+                output_file.write('\n\t' + room.name + '\n' + '-'*80 + '\n')
+                if room.occupants:
+                    for person in room.occupants:
+                        output_file.write(person + ',\t')
+                output_file.write('\n')
+            output_file.close()
+            cprint('\t\t ***Done***', 'white')
+        except:
+            cprint('An error occurred. Please try again', 'red')
 
     def print_allocations(self, filename=None):
         """
@@ -357,64 +392,14 @@ class Amity(object):
 
         """
         try:
-            # Printing into a txt file
             if filename:
-                filepath = 'amity/files/' + filename + '.txt'
-                output_file = open(filepath, "w")
-                print("Printing to %s.txt ...\n\n" % filename)
-                output_file.write('\t\t...OFFICE...\n')
-                for key, items in self.all_allocations['office'].items():
-                    self.check_empty_offices(key)
-                    item = ', '.join(items)
-                    output_file.write('\t' + key + '\n-----------------\
-                    ----\n' + item + '\n\n')
-                output_file.write('\t\t...LIVING SPACE...\n')
-                for key, items in self.all_allocations['living_space'].items():
-                    self.check_empty_living_space(key)
-                    item = ', '.join(items)
-                    output_file.write('\t' + key + '\n-------------\
-                    --------\n' + item + '\n\n')
-                output_file.close()
-                cprint('\t\t ***Done***', 'white')
+                self.print_all_allocations_into_a_txt_file(filename)
             else:
-                cprint('...OFFICE...\n', 'cyan')
-                if self.all_room['office']:
-                    # Print all offices and the person names
-                    # assigned to that room
-                    for room in self.all_rooms['office']:
-                        if room.occupants:
-                            for person in room.occupants:
-                                cprint(room, 'yellow')
-                                cprint(',\t'.join(map(str, person)), 'cyan')
-                        # If empty
-                        else:
-                            cprint("There are no allocations here at the moment...\n\
-                            ", 'white')
-                else:
-                    cprint("There are no Offices here at the moment...\n\
-                    ", 'white')
-
-                cprint('%'*60, 'white')
-                cprint('...LIVING SPACE...\n', 'cyan')
-
-                if self.all_room['living_space']:
-                    # Print all offices and the person names
-                    # assigned to different room
-                    for room in self.all_rooms['living_space']:
-                        if room.occupants:
-                            for person in room.occupants:
-                                cprint(room, 'yellow')
-                                cprint(',\t'.join(map(str, person)), 'cyan')
-                        # Check for empty rooms
-                        else:
-                            cprint("There are no allocations here at the moment...\n\
-                        ", 'white')
-                else:
-                    cprint("There are no allocations here at the moment...\n\
-                    ", 'white')
-
-        except:
-            cprint('An error occurred.', 'red')
+                self.print_all_living_space_allocations()
+                self.print_all_office_allocations()
+        except Exception as e:
+            cprint('An error occured')
+            print(e)
 
     def print_unallocated(self, filename=None):
         """
@@ -426,14 +411,15 @@ class Amity(object):
             output_file = open(filepath, 'w')
             cprint("Printing to file %s..." % filename, 'white')
             output_file.write('\t \t \t...UNALLOCATED PEOPLE...\n')
-            for name in self.all_unallocated:
-                output_file.write(name + ',\t')
+            for person in self.all_unallocated:
+                output_file.write('%s,\t' % person)
             output_file.close()
             cprint('Done', 'white')
         # Print on the screen
         else:
             if self.all_unallocated:
-                cprint(',\t'.join(map(str, self.all_unallocated)), 'cyan')
+                for person in self.all_unallocated:
+                    cprint('%s,\t' % person, 'cyan')
             else:
                 cprint('There are no unallocated persons at the moment...',
                        'red')
@@ -455,7 +441,6 @@ class Amity(object):
                     want_accomodation = ''.join(list_words[3])
                 except IndexError:
                     want_accomodation = 'N'
-                # print(position)
                 self.add_person(position, person_name, want_accomodation)
         except Exception as e:
             print('That file does not exist... Please try again.')
@@ -652,6 +637,22 @@ class Amity(object):
         except:
             cprint('An error occured when loading data...', 'red')
 
+    def print_all_person_into_txt_file(self, filename):
+        try:
+            filepath = 'amity/files/' + filename + '.txt'
+            output_file = open(filepath, "w")
+            cprint("Printing to %s.txt..." % filename, 'white')
+            output_file.write('\t\t...STAFFS...\n')
+            for staff in self.all_persons['staff']:
+                output_file.write('\n\t' + staff.name + '\n')
+            output_file.write('\t\t...FELLOWS...\n')
+            for fellow in self.all_persons['fellow']:
+                output_file.write('\n\t' + fellow.name + '\n')
+            output_file.close()
+            cprint('\n\n\t***Done***', 'white')
+        except:
+            cprint('An error occurred.', 'red')
+
     def print_all_persons(self, filename=None):
         """
 
@@ -662,19 +663,7 @@ class Amity(object):
         try:
             # Printing into a txt file
             if filename:
-                filepath = 'amity/files/' + filename + '.txt'
-                output_file = open(filepath, "w")
-                print("Printing to %s...\n" % filename)
-                output_file.write('\t\t...STAFF...\n')
-                for items in self.all_persons['staff']:
-                    item = ''.join(items)
-                    output_file.write('\n------------------\n' + item + '\n\n')
-                output_file.write('\t\t...FELLOW...\n')
-                for items in self.all_persons['fellow']:
-                    item = ''.join(items)
-                    output_file.write('\n------------------\n' + item + '\n\n')
-                output_file.close()
-                cprint('***Done***', 'white')
+                self.print_all_person_into_txt_file(filename)
             else:
                 cprint('...staff...', 'cyan')
                 if self.all_persons['staff']:
@@ -695,6 +684,22 @@ class Amity(object):
         except:
             cprint('An error occurred.', 'red')
 
+    def print_all_rooms_into_txt_file(self, filename):
+        try:
+            filepath = 'amity/files/' + filename + '.txt'
+            output_file = open(filepath, "w")
+            cprint("Printing to %s.txt..." % filename, 'white')
+            output_file.write('\t\t...OFFICE...\n')
+            for office in self.all_rooms['office']:
+                output_file.write('\n\t' + office.name + '\n')
+            output_file.write('\t\t...LIVING SPACE...\n')
+            for living_space in self.all_rooms['living_space']:
+                output_file.write('\n\t' + living_space.name + '\n')
+            output_file.close()
+            cprint('\n\n\t***Done***', 'white')
+        except:
+            print('An error occurred.')
+
     def print_all_rooms(self, filename=None):
         """
 
@@ -705,19 +710,7 @@ class Amity(object):
         try:
             # Printing into a txt file
             if filename:
-                filepath = 'amity/files/' + filename + '.txt'
-                output_file = open(filepath, "w")
-                print("Printing to %s..." % filename)
-                output_file.write('\t\t...OFFICE...\n')
-                for items in self.all_rooms['office']:
-                    item = ''.join(items)
-                    output_file.write('\n------------------\n' + item + '\n\n')
-                output_file.write('\t\t...LIVING SPACE...\n')
-                for items in self.all_rooms['living_space']:
-                    item = ''.join(items)
-                    output_file.write('\n------------------\n' + item + '\n\n')
-                output_file.close()
-                cprint('***Done***', 'white')
+                self.print_all_rooms_into_txt_file(filename)
             else:
                 cprint('...OFFICES...', 'cyan')
                 if self.all_rooms['office']:
