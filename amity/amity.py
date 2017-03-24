@@ -69,7 +69,7 @@ class Amity(object):
         if position == 'S' and want_accomodation == 'N':
             new_person = Staff(person_name)
             self.all_persons['staff'].append(new_person)
-            cprint("Staff: %s has been added...>>\n" % person_name, 'cyan')
+            cprint("Staff: %s has been added...>>\n" % new_person.name, 'cyan')
             # Allocating fellow an office
             self.random_office_space(person_name)
 
@@ -78,7 +78,7 @@ class Amity(object):
         elif position == 'S' and want_accomodation == 'Y':
             new_person = Staff(person_name)
             self.all_persons['staff'].append(new_person)
-            cprint("Staff: %s has been added ...>>" % person_name, 'cyan')
+            cprint("Staff: %s has been added ...>>" % new_person.name, 'cyan')
             # Allocating staff an office
             self.random_office_space(person_name)
             # Reject request for accomodation
@@ -90,7 +90,7 @@ class Amity(object):
         elif position == 'F' and want_accomodation == 'Y':
             new_person = Fellow(person_name, want_accomodation)
             self.all_persons['fellow'].append(new_person)
-            cprint("Fellow: %s has been added...>>" % person_name, 'cyan')
+            cprint("Fellow: %s has been added...>>" % new_person.name, 'cyan')
             # Allocating fellow an office
             self.random_office_space(person_name)
             # Allocating fellow a living space
@@ -101,7 +101,7 @@ class Amity(object):
             new_person = Fellow(person_name)
             self.all_unallocated.append(new_person)
             self.all_persons['fellow'].append(new_person)
-            cprint("Fellow: %s has been added ...>>" % person_name, 'cyan')
+            cprint("Fellow: %s has been added ...>>" % new_person.name, 'cyan')
             # Allocating fellow an office
             self.random_office_space(person_name)
 
@@ -169,6 +169,10 @@ class Amity(object):
         """
         Reallocates a fellow to a new office or new living space
         """
+        for room in self.all_rooms['office']:
+            if room.name == room_name:
+                cprint("%s room already exists..." % room_name, 'red')
+                return
         # Reallocate a staff to a new room
         if new_room_name in self.all_allocations['office'].keys() and len(
                 self.all_allocations['office'][new_room_name]) < 6:
@@ -308,25 +312,24 @@ class Amity(object):
         if any.
 
         """
-        if room_name in self.all_rooms['office']:
-            if room_name in self.all_allocations['office']:
-                cprint('OFFICE NAME: %s' % room_name, 'blue')
-                cprint('*'*60, 'cyan')
-                cprint(',\t'.join(self.all_allocations['office'][room_name]),
-                       'blue')
-            else:
-                cprint("Room %s has no allocations" % room_name, 'white')
+        current_room = None
+        for room in self.all_rooms['office'] + self.all_rooms['living_space']:
+            if room.name == room_name:
+                current_room = room
+                break
 
-        elif room_name in self.all_rooms['living_space']:
-            if room_name in self.all_allocations['living_space']:
-                cprint('LIVING SPACE NAME: %s' % room_name, 'blue')
-                cprint('*'*60, 'cyan')
-                cprint(',\t'.join(self.all_allocations['living_space']
-                                  [room_name]), 'blue')
-            else:
-                cprint("Room %s has no allocations" % room_name, 'white')
-        else:
+        if not current_room:
             cprint("Room %s does not exist" % room_name, 'white')
+            return
+
+        if current_room.occupants:
+            cprint('{} NAME: {}'.format(current_room.room_type.upper(),
+                   current_room.name), 'blue')
+            cprint('*'*60, 'cyan')
+            cprint(',\t'.join(current_room.occupants),
+                   'blue')
+        else:
+            cprint("Room %s has no allocations" % current_room.name, 'white')
 
     def check_empty_offices(self, key):
         """
@@ -374,34 +377,42 @@ class Amity(object):
                 output_file.close()
                 cprint('\t\t ***Done***', 'white')
             else:
-                cprint('...OFFICE...', 'cyan')
-                if self.all_allocations['office']:
+                cprint('...OFFICE...\n', 'cyan')
+                if self.all_room['office']:
                     # Print all offices and the person names
                     # assigned to that room
-                    for key, value in self.all_allocations['office'].items():
-                        # Check for a blank office list
-                        cprint(key, 'yellow')
-                        # Check for empty rooms
-                        self.check_empty_offices(key)
-                        cprint(',\t'.join(map(str, value)), 'cyan')
+                    for room in self.all_rooms['office']:
+                        if room.occupants:
+                            for person in room.occupants:
+                                cprint(room, 'yellow')
+                                cprint(',\t'.join(map(str, person)), 'cyan')
+                        # If empty
+                        else:
+                            cprint("There are no allocations here at the moment...\n\
+                            ", 'white')
                 else:
-                    cprint("There are no allocations at the moment...\
+                    cprint("There are no Offices here at the moment...\n\
                     ", 'white')
 
                 cprint('%'*60, 'white')
-                cprint('...LIVING SPACE...', 'cyan')
-                if self.all_allocations['living_space']:
-                    # Print all living spaces and the person names
-                    # assigned to that room
-                    for key, value in self.all_allocations['living_space'].\
-                         items():
-                        cprint(key, 'yellow')
+                cprint('...LIVING SPACE...\n', 'cyan')
+
+                if self.all_room['living_space']:
+                    # Print all offices and the person names
+                    # assigned to different room
+                    for room in self.all_rooms['living_space']:
+                        if room.occupants:
+                            for person in room.occupants:
+                                cprint(room, 'yellow')
+                                cprint(',\t'.join(map(str, person)), 'cyan')
                         # Check for empty rooms
-                        self.check_empty_living_space(key)
-                        cprint(',\t'.join(map(str, value)), 'cyan')
+                        else:
+                            cprint("There are no allocations here at the moment...\n\
+                        ", 'white')
                 else:
-                    cprint("There are no allocations at the moment...\
+                    cprint("There are no allocations here at the moment...\n\
                     ", 'white')
+
         except:
             cprint('An error occurred.', 'red')
 
@@ -462,74 +473,72 @@ class Amity(object):
             db.create_table()
             cursor = db.cursor()
 
-            # Save all employees
-            cprint('\t \tSaving to %s...' % db_path, 'white')
-            for position, names in self.all_persons.items():
-                for name in names:
+            # Save all Persons
+            if self.all_persons['staff'
+                                ] + self.all_persons['fellow']:
+                cprint('\t \tSaving all Persons to %s...\n' % db_path, 'cyan')
+                for person in self.all_persons['staff'] + self.all_persons[
+                        'fellow']:
                     try:
                         cursor.execute(
                             "INSERT INTO employee VALUES (null,?,?);",
-                            (name, position))
+                            (person.name, person.position))
                     except sqlite3.IntegrityError:
                         continue
-            db.commit()
+                cprint('\t \tSaved...', 'white')
+                db.commit()
+            else:
+                cprint('\t\tThere are no staffs in the System at the moment...\
+                \n')
 
-            # Save all all_rooms
-            for room_type, room_names in self.all_rooms.items():
-                for name in room_names:
+            # Save all Rooms
+            if self.all_rooms['office'
+                              ] + self.all_rooms['living_space']:
+                cprint('\t \tSaving all Rooms to %s...\n' % db_path, 'cyan')
+                for room in self.all_rooms['office'] + self.all_rooms[
+                        'living_space']:
                     try:
-                        cursor.execute("INSERT INTO room VALUES (null,?,?);",
-                                       (name, room_type))
+                        cursor.execute(
+                            "INSERT INTO room VALUES (null,?,?);",
+                            (room.name, room.room_type))
                     except sqlite3.IntegrityError:
                         continue
-            db.commit()
+                cprint('\t \tSaved...', 'white')
+                db.commit()
+            else:
+                cprint('\t\tThere are no roomss in the System at the moment...\
+                \n', 'red')
 
             # Save allocations
-            for room_name, person_names in self.all_allocations['office'
-                                                                ].items():
-                for person_name in person_names:
-                    employee_id = cursor.execute(
-                        """
-                        SELECT employee_id FROM employee WHERE name=?""",
-                        (person_name,))
-                    for e_id in employee_id:
-                        employee_id = e_id[0]
-                    room_id = cursor.execute(
-                        "SELECT room_id FROM room WHERE name=?",
-                        (room_name,))
-                    for r_id in room_id:
-                        room_id = r_id[0]
-                    try:
-                        cursor.execute(
-                            "INSERT INTO allocation VALUES (null,?,?);",
-                            (employee_id, room_id))
-                    except sqlite3.IntegrityError:
-                        continue
-            for room_name, person_names in self.all_allocations['living_space'
-                                                                ].items():
-                for person_name in person_names:
-                    employee_id = cursor.execute(
-                        "SELECT employee_id FROM employee WHERE name=?",
-                        (person_name,))
-                    for e_id in employee_id:
-                        employee_id = e_id[0]
-                    room_id = cursor.execute(
-                        "SELECT room_id FROM room WHERE name=?", (room_name,))
-                    for r_id in room_id:
-                        room_id = r_id[0]
-                    try:
-                        cursor.execute(
-                            "INSERT INTO allocation VALUES (null,?,?);",
-                            (employee_id, room_id))
-                    except sqlite3.IntegrityError:
-                        continue
+            if self.all_rooms['office'
+                              ] + self.all_rooms['living_space']:
+                for room in self.all_rooms['office'
+                                           ] + self.all_rooms['living_space']:
+                    for person_name in room.occupants:
+                        employee_id = cursor.execute(
+                            """
+                            SELECT employee_id FROM employee WHERE name=?""",
+                            (person_name,))
+                        for e_id in employee_id:
+                            employee_id = e_id[0]
+                        room_id = cursor.execute(
+                            "SELECT room_id FROM room WHERE name=?",
+                            (room.name,))
+                        for r_id in room_id:
+                            room_id = r_id[0]
+                        try:
+                            cursor.execute(
+                                "INSERT INTO allocation VALUES (null,?,?);",
+                                (employee_id, room_id))
+                        except sqlite3.IntegrityError:
+                            continue
             db.commit()
 
             # Save Unallocated people
             for person_name in self.all_unallocated:
                 employee_id = cursor.execute(
                     "SELECT employee_id FROM employee WHERE name=?",
-                    (person_name,))
+                    (person_name.name,))
                 for e_id in employee_id:
                     employee_id = e_id[0]
                 try:
@@ -542,7 +551,7 @@ class Amity(object):
             db.close_db()
         except Exception as e:
             print('An error occured')
-            print(str(e))
+            print(e)
 
     def load_all_persons_from_db(self, person_data):
         # Load all employees from the Database
