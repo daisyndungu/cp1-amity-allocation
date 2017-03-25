@@ -171,67 +171,95 @@ class Amity(object):
             cprint('There are no available Living Space at the moment...\n\
             ', 'red')
 
+    def remove_person_from_previous_office_allocations(self, person_name):
+        for room in self.all_rooms['office']:
+            for name in room.occupants:
+                if name == person_name:
+                    room.occupants.remove(person_name)
+                    return
 
-###
+    def remove_person_from_previous_LSpace_allocations(self, person_name):
+        for room in self.all_rooms['living_space']:
+            for name in room.occupants:
+                if name == person_name:
+                    room.occupants.remove(person_name)
+                    return
+
     def reallocate_a_staff(self, person_name, new_room_name):
         """
         Reallocates a fellow to a new office or new living space
         """
         # Reallocate a person to a new office
         try:
-            for room in self.all_rooms['office']:
-                if room.name == new_room_name:
+            for room in self.all_rooms['office'] + self.all_rooms[
+                 'living_space']:
+                if room.name == new_room_name and room.room_type == 'office':
                     for person in room.occupants:
                         if person == person_name:
                             cprint("{} is already allocated in {}...".format(
                                 room.name, person), 'red')
                             return
-                        elif len(room.occupants) < 4:
-                            room.occupants.append(person_name)
-                            cprint('%s has been reallocated successfully...'
-                                   % person_name, 'white')
-                            return
-                        else:
-                            cprint('%s is full. Please pick another room'
-                                   % room.name, 'red')
-                            return
+                    if len(room.occupants) < 6:
+                        self.remove_person_from_previous_office_allocations(
+                            person_name)
+                        room.occupants.append(person_name)
+                        cprint('%s has been reallocated successfully...'
+                               % person_name, 'white')
+                        return
+                    else:
+                        cprint('%s is full. Please pick another room'
+                               % room.name, 'red')
+                        return
+                elif (room.name == new_room_name and room.room_type ==
+                      'living_space'):
+                    cprint('A Staff can not be allocated a living spaces \
+                           ', 'red')
+                    return
         except:
-            cprint('{} is not an office...'.format(new_room_name), 'red')
+            cprint('{} is not an office or it does not exist...'.format(
+                new_room_name), 'red')
 
     def reallocate_a_fellow(self, person_name, new_room_name):
         try:
             for room in self.all_rooms['office'] + self.all_rooms[
-                    'living_space']:
+                 'living_space']:
                 if room.name == new_room_name and room.room_type == 'office':
                     for person in room.occupants:
                         if person == person_name:
                             cprint("{} is already allocated in {}...".format(
                                 person, room.name), 'red')
                             return
-                        elif len(room.occupants) < 6:
-                            room.occupants.append(person_name)
-                            cprint('%s has been reallocated successfully...'
-                                   % person_name, 'white')
-                            return
-                        else:
-                            cprint('%s is full. Please pick another room'
-                                   % room.name, 'red')
-                            return
-                else:
+                    if len(room.occupants) < 6:
+                        self.remove_person_from_previous_office_allocations(
+                            person_name)
+                        room.occupants.append(person_name)
+                        cprint('%s has been reallocated successfully...'
+                               % person_name, 'white')
+                        return
+                    else:
+                        cprint('%s is full. Please pick another room'
+                               % room.name, 'red')
+                        return
+                elif (room.name == new_room_name and room.room_type ==
+                      'living_space'):
                     for person in room.occupants:
                         if person == person_name:
                             cprint("{} is already allocated in {}...".format(
                                 person, room.name), 'red')
                             return
-                        elif len(room.occupants) < 4:
-                            room.occupants.append(person_name)
-                            cprint('%s has been reallocated successfully...'
-                                   % person_name, 'white')
-                            return
-                        else:
-                            cprint('%s is full. Please pick another room'
-                                   % room.name, 'red')
-                            return
+                    if len(room.occupants) < 4:
+                        self.remove_person_from_previous_LSpace_allocations(
+                            person_name)
+                        room.occupants.append(person_name)
+                        cprint('%s has been reallocated successfully...'
+                               % person_name, 'white')
+                        return
+                    else:
+                        cprint('%s is full. Please pick another room'
+                               % room.name, 'red')
+                        return
+                else:
+                    cprint('%s does not exist...', 'red')
         except:
             cprint('An error occured', 'red')
 
@@ -241,10 +269,10 @@ class Amity(object):
                                         'fellow']:
                 if person.name == person_name and person.position == 'fellow':
                     self.reallocate_a_fellow(person_name, new_room_name)
-                    return
+                    break
                 elif person.name == person_name and person.position == 'staff':
                     self.reallocate_a_staff(person_name, new_room_name)
-                    return
+                    break
         except:
             cprint('%s does not exist...' % person_name, 'red')
             return
@@ -268,10 +296,11 @@ class Amity(object):
 
         if current_room.occupants:
             cprint('{} NAME: {} \n'.format(current_room.room_type.upper(),
-                   current_room.name), 'blue')
+                   current_room.name), 'white')
             cprint('*'*60, 'cyan')
             cprint(',\t'.join(current_room.occupants),
                    'blue')
+            print('\n')
         else:
             cprint("Room %s has no allocations" % current_room.name, 'white')
 
@@ -279,7 +308,7 @@ class Amity(object):
         if self.all_rooms['living_space']:
             # Print all offices and the person names
             # assigned to different room
-            cprint('...LIVING SPACES...\n', 'cyan')
+            cprint('\n...LIVING SPACES...\n', 'cyan')
             for room in self.all_rooms['living_space']:
                 self.print_room(room.name)
         else:
@@ -290,7 +319,7 @@ class Amity(object):
         if self.all_rooms['office']:
             # Print all offices and the person names
             # assigned to that room
-            cprint('...OFFICES...\n', 'cyan')
+            cprint('\n...OFFICES...\n', 'cyan')
             for room in self.all_rooms['office']:
                 self.print_room(room.name)
         else:
@@ -335,9 +364,8 @@ class Amity(object):
             else:
                 self.print_all_living_space_allocations()
                 self.print_all_office_allocations()
-        except Exception as e:
+        except:
             cprint('An error occured')
-            print(e)
 
     def print_unallocated(self, filename=None):
         """
