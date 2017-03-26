@@ -164,16 +164,19 @@ class Test_Amity(unittest.TestCase):
                          self.amity.all_allocations['living_space']['php'])
 
     def test_print_room_living_space(self):
-        room_name = 'php'
-        self.amity.print_room(room_name)
+        living_space_name = 'php'
+        living_space = LivingSpace('php')
+        living_space.occupants = ['Test User']
+        self.amity.print_room(living_space_name)
         message = sys.stdout.getvalue().strip()
         self.assertIn('LIVING SPACE NAME: php', message)
 
     def test_print_room_office(self):
-        room_name = 'camelot'
-        self.amity.print_room(room_name)
+        self.amity.add_person('Test User', 'S', 'N')
+        Office('camelot').occupants = ['Test User']
+        self.amity.print_room('camelot')
         message = sys.stdout.getvalue().strip()
-        self.assertIn('OFFICE NAME: camelot', message)
+        self.assertIn('Test User', message)
 
     def test_empty_offices(self):
         key = 'hogwarts'
