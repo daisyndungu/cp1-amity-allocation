@@ -80,12 +80,14 @@ class Amity(cmd.Cmd):
         """Usage: create_room <room_type> <room_names> ... """
         room_type = args['<room_type>'].upper()
         for room_name in args['<room_names>']:
-            self.amity.create_room(room_type, room_name)
+
+            self.amity.create_room(room_type, room_name.upper())
 
     @docopt_cmd
     def do_add_person(self, args):
         """Usage: add_person <first_name> <last_name> <position> [--a=n] """
-        person_name = args['<first_name>'] + ' ' + args['<last_name>']
+        person_name = args['<first_name>'
+                           ].upper() + ' ' + args['<last_name>'].upper()
         position = args['<position>'].upper()
         if args['--a'] is None:
             args['--a'] = 'N'
@@ -95,14 +97,15 @@ class Amity(cmd.Cmd):
     @docopt_cmd
     def do_reallocate_person(self, args):
         """Usage: add_person <first_name> <last_name> <new_room_name> """
-        person_name = args['<first_name>'] + ' ' + args['<last_name>']
-        new_room_name = args['<new_room_name>']
+        person_name = args['<first_name>'
+                           ].upper() + ' ' + args['<last_name>'].upper()
+        new_room_name = args['<new_room_name>'].upper()
         self.amity.reallocate_person(person_name, new_room_name)
 
     @docopt_cmd
     def do_print_room(self, arg):
         """Usage: print_room <room_name> """
-        room_name = arg['<room_name>']
+        room_name = arg['<room_name>'].upper()
         self.amity.print_room(room_name)
 
     @docopt_cmd

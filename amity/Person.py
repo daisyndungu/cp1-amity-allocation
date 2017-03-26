@@ -4,6 +4,9 @@ class Person(object):
         self.name = name
         self.position = position
 
+    def __repr__(self):
+        return self.name
+
 
 class Staff(Person):
     def __init__(self, name):
