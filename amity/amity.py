@@ -19,7 +19,10 @@ class Amity(object):
         'office': {},
         'living_space': {}
         }
-    all_unallocated = []
+    all_unallocated = {
+        'office': [],
+        'living_space': []
+    }
     all_rooms = {
         'living_space': [],
         'office': []
@@ -99,7 +102,7 @@ class Amity(object):
         # Adding a fellow and allocating them an office space only
         elif position == 'F' and want_accomodation == 'N':
             new_person = Fellow(person_name)
-            self.all_unallocated.append(person_name)
+            self.all_unallocated['living_space'].append(person_name)
             self.all_persons['fellow'].append(new_person)
             cprint("Fellow: %s has been added ...>>" % new_person.name, 'cyan')
             # Allocating fellow an office
@@ -126,13 +129,13 @@ class Amity(object):
             else:
                 cprint('There are no available office at the moment...\n',
                        'red')
-                self.all_unallocated.append(person_name)
+                self.all_unallocated['office'].append(person_name)
                 cprint('%s has been added to the waiting list...\n'
                        % person_name,
                        'magenta')
         else:
             # No accomodation
-            self.all_unallocated.append(person_name)
+            self.all_unallocated['office'].append(person_name)
             cprint('There are no available Offices at the moment...\n',
                    'red')
 
@@ -157,13 +160,13 @@ class Amity(object):
             else:
                 cprint('There are no available living space at the moment...\n\
                        ', 'red')
-                self.all_unallocated.append(person_name)
+                self.all_unallocated['living_space'].append(person_name)
                 cprint('%s has been added to the waiting list...\n'
                        % person_name,
                        'magenta')
         else:
             # No accomodation
-            self.all_unallocated.append(person_name)
+            self.all_unallocated['living_space'].append(person_name)
             cprint('There are no available Living Space at the moment...\n\
             ', 'red')
 
@@ -178,8 +181,8 @@ class Amity(object):
                     return
                 else:
                     continue
-        if person_name in self.all_unallocated:
-            self.all_unallocated.remove(person_name)
+        if person_name in self.all_unallocated['office']:
+            self.all_unallocated['office'].remove(person_name)
 
     def remove_person_from_previous_LSpace_allocations(self, person_name):
         """
@@ -190,8 +193,10 @@ class Amity(object):
                 if name == person_name:
                     room.occupants.remove(person_name)
                     return
-        if person_name in self.all_unallocated:
-            self.all_unallocated.remove(person_name)
+                else:
+                    continue
+        if person_name in self.all_unallocated['living_space']:
+            self.all_unallocated['living_space'].remove(person_name)
 
     def reallocate_a_staff(self, person_name, new_room_name):
         """
@@ -266,9 +271,10 @@ class Amity(object):
                         cprint('%s is full. Please pick another room'
                                % room.name, 'red')
                         return
-        except:
+        except Exception as e:
             cprint('An error occured', 'red')
             cprint('%s does not exist...' % person_name, 'red')
+            print(e)
 
     def reallocate_person(self, person_name, new_room_name):
         try:
@@ -380,17 +386,31 @@ class Amity(object):
             output_file = open(filepath, 'w')
             cprint("Printing to file %s..." % filename, 'white')
             output_file.write('\t \t \t...UNALLOCATED PEOPLE...\n')
-            for person in self.all_unallocated:
+            output_file.write('\t\t\t \n...OFFICE WAITING LIST...\n')
+            for person in self.all_unallocated['office']:
+                output_file.write('%s,\t' % person)
+            output_file.write('\t\t\t \n\n...LIVING SPACE WAITING LIST...\n')
+            for person in self.all_unallocated['living_space']:
                 output_file.write('%s,\t' % person)
             output_file.close()
-            cprint('Done', 'white')
+            cprint('%'*60)
+            cprint('\n\nDone.', 'white')
         # Print on the screen
         else:
-            if self.all_unallocated:
-                for person in self.all_unallocated:
+            cprint('\t \t \t...OFFICE...\n', 'white')
+            if self.all_unallocated['office']:
+                for person in self.all_unallocated['office']:
                     cprint('%s,\t' % person, 'cyan')
             else:
-                cprint('There are no unallocated persons at the moment...',
+                cprint('\nThere are no unallocated persons at the moment...\n',
+                       'red')
+
+            cprint('\t \t \t...Living Space...\n', 'white')
+            if self.all_unallocated['living_space']:
+                for person in self.all_unallocated['living_space']:
+                    cprint('%s,\t' % person, 'cyan')
+            else:
+                cprint('\nThere are no unallocated persons at the moment...\n',
                        'red')
 
     def load_people(self, filename):
@@ -493,9 +513,10 @@ class Amity(object):
                 cprint('\t\tThere are no allocations in the System at the moment...\
                 \n', 'red')
 
-            # Save Unallocated people
-            if self.all_unallocated:
-                for person_name in self.all_unallocated:
+            # Save all people missing offices
+            if self.all_unallocated['office']:
+                for person_name in self.all_unallocated['office']:
+                    room_type = 'office'
                     employee_id = cursor.execute(
                         "SELECT employee_id FROM employee WHERE name=?",
                         (person_name,))
@@ -503,20 +524,40 @@ class Amity(object):
                         employee_id = e_id[0]
                     try:
                         cursor.execute(
-                            "INSERT INTO unallocated VALUES (null,?);",
-                            (employee_id,))
+                            "INSERT INTO unallocated VALUES (null,?,?);",
+                            (employee_id, room_type,))
                     except sqlite3.IntegrityError:
                         continue
-                cprint('\t \tSaved...\n', 'white')
+                cprint('\t \t *Saved successfully...', 'white')
+                db.commit()
+            else:
+                cprint('\t\tThere are no allocations in the System at the moment...\
+                    \n', 'red')
+
+            # Save all people missing living space
+            if self.all_unallocated['living_space']:
+                for person_name in self.all_unallocated['living_space']:
+                    room_type = 'living_space'
+                    employee_id = cursor.execute(
+                        "SELECT employee_id FROM employee WHERE name=?",
+                        (person_name,))
+                    for e_id in employee_id:
+                        employee_id = e_id[0]
+                    try:
+                        cursor.execute(
+                            "INSERT INTO unallocated VALUES (null,?,?);",
+                            (employee_id, room_type,))
+                    except sqlite3.IntegrityError:
+                        continue
+                cprint('\t \t *Saved successfully...', 'white')
                 db.commit()
             else:
                 cprint('\t\tThere are no allocations in the System at the moment...\
                     \n', 'red')
             cprint('\t \t *Saved successfully...', 'white')
             db.close_db()
-        except Exception as e:
-            cprint('An error occured', 'red')
-            print(e)
+        except:
+            cprint('An error occured. Please try again...', 'red')
 
     def load_all_persons_from_db(self, person_data):
         # Load all employees from the Database
@@ -585,11 +626,13 @@ class Amity(object):
             cprint('Loading unallocated...', 'white')
             for row in unallocate_data:
                 employee_name = row[0]
-                self.all_unallocated.append(employee_name)
+                room_type = row[1]
+                self.all_unallocated[room_type].append(employee_name)
             cprint('*'*40)
             cprint('\nLoaded successfully...\n', 'white')
-        except:
+        except Exception as e:
             cprint("Unable to load db. An error occurred.", 'red')
+            print(e)
 
     def load_state(self, db_name=None):
         """

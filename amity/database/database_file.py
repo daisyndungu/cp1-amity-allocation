@@ -46,8 +46,9 @@ class Database(object):
             CREATE TABLE IF NOT EXISTS unallocated (
             unallocated_id INTEGER PRIMARY KEY,
             employee_id INTEGER,
+            room_type VARCHAR(20),
             FOREIGN KEY (employee_id) REFERENCES employee(employee_id)
-            );"""
+            unique (employee_id, room_type));"""
         cursor.execute(sql_command)
 
     def close_db(self):
@@ -74,7 +75,8 @@ class Database(object):
         cursor = self.cursor()
         load_unallocated_query = """
             SELECT
-                employee.name
+                employee.name,
+                room_type
             FROM unallocated
             JOIN employee
                 ON employee.employee_id = unallocated.employee_id;"""
