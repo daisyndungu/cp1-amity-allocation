@@ -55,7 +55,6 @@ class Database(object):
         return self.conn.close()
 
     def query_allocation_records(self):
-        #
         cursor = self.cursor()
         load_allocation_query = """
             SELECT
@@ -71,7 +70,6 @@ class Database(object):
         return cursor.execute(load_allocation_query)
 
     def query_unallocated_records(self):
-        #
         cursor = self.cursor()
         load_unallocated_query = """
             SELECT
