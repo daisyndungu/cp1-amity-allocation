@@ -118,10 +118,11 @@ class Amity(object):
             cprint('Allocating an Office...\n', 'white')
             available_office = []
             for office in self.all_rooms['office']:
-                if len(office.occupants) < 6:
+                if len(office.occupants) < office.space:
                     available_office.append(office)
                 else:
                     continue
+            print()
             if available_office:
                 allocated_office_name = random.choice(available_office)
                 allocated_office_name.occupants.append(person_name)
@@ -138,6 +139,8 @@ class Amity(object):
             self.all_unallocated['office'].append(person_name)
             cprint('There are no available Offices at the moment...\n',
                    'red')
+            cprint('%s has been added to the waiting list...\n'
+                   % person_name, 'magenta')
 
     def random_living_space(self, person_name):
         """
@@ -149,7 +152,7 @@ class Amity(object):
             cprint('Allocating a living Space...\n', 'white')
             available_living_space = []
             for living_space in self.all_rooms['living_space']:
-                if len(living_space.occupants) < 4:
+                if len(living_space.occupants) < living_space.space:
                     available_living_space.append(living_space)
 
             if available_living_space:
@@ -169,6 +172,8 @@ class Amity(object):
             self.all_unallocated['living_space'].append(person_name)
             cprint('There are no available Living Space at the moment...\n\
             ', 'red')
+            cprint('%s has been added to the waiting list...\n'
+                   % person_name, 'magenta')
 
     def remove_person_from_previous_office_allocations(self, person_name):
         """
@@ -242,7 +247,7 @@ class Amity(object):
                             cprint("{} is already allocated in {}...".format(
                                 person, room.name), 'red')
                             return
-                    if len(room.occupants) < 6:
+                    if len(room.occupants) < room.space:
                         self.remove_person_from_previous_office_allocations(
                             person_name)
                         room.occupants.append(person_name)
@@ -260,7 +265,7 @@ class Amity(object):
                             cprint("{} is already allocated in {}...".format(
                                 person, room.name), 'red')
                             return
-                    if len(room.occupants) < 4:
+                    if len(room.occupants) < room.space:
                         self.remove_person_from_previous_LSpace_allocations(
                             person_name)
                         room.occupants.append(person_name)
@@ -271,10 +276,9 @@ class Amity(object):
                         cprint('%s is full. Please pick another room'
                                % room.name, 'red')
                         return
-        except Exception as e:
+        except:
             cprint('An error occured', 'red')
             cprint('%s does not exist...' % person_name, 'red')
-            print(e)
 
     def reallocate_person(self, person_name, new_room_name):
         try:
@@ -431,9 +435,8 @@ class Amity(object):
                 except IndexError:
                     want_accomodation = 'N'
                 self.add_person(position, person_name, want_accomodation)
-        except Exception as e:
-            print('That file does not exist... Please try again.')
-            print(str(e))
+        except:
+            cprint('That file does not exist... Please try again.', 'white')
 
     def save_state(self, db_name=None):
         """
@@ -531,7 +534,7 @@ class Amity(object):
                 cprint('\t \t *Saved successfully...', 'white')
                 db.commit()
             else:
-                cprint('\t\tThere are no allocations in the System at the moment...\
+                cprint('\t\tOffice waiting list is empty at the moment...\
                     \n', 'red')
 
             # Save all people missing living space
@@ -552,9 +555,8 @@ class Amity(object):
                 cprint('\t \t *Saved successfully...', 'white')
                 db.commit()
             else:
-                cprint('\t\tThere are no allocations in the System at the moment...\
+                cprint('\t\tLiving Space is empty at the moment...\
                     \n', 'red')
-            cprint('\t \t *Saved successfully...', 'white')
             db.close_db()
         except:
             cprint('An error occured. Please try again...', 'red')
@@ -592,9 +594,8 @@ class Amity(object):
                     self.all_rooms['living_space'].append(living_space)
             cprint('*'*40)
             cprint('\nLoaded successfully...\n', 'white')
-        except Exception as e:
+        except:
             cprint('There are no rooms in the Database', 'white')
-            print(e)
 
     def load_all_allocations_from_db(self, allocation_data):
         try:
@@ -630,9 +631,8 @@ class Amity(object):
                 self.all_unallocated[room_type].append(employee_name)
             cprint('*'*40)
             cprint('\nLoaded successfully...\n', 'white')
-        except Exception as e:
+        except:
             cprint("Unable to load db. An error occurred.", 'red')
-            print(e)
 
     def load_state(self, db_name=None):
         """
