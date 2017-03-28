@@ -364,6 +364,7 @@ class Amity(object):
             output_file.close()
             cprint('\t\t ***Done***', 'white')
         except:
+            # #
             cprint('An error occurred. Please try again', 'red')
 
     def print_allocations(self, filename=None):
