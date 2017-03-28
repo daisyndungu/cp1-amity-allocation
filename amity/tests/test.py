@@ -21,16 +21,10 @@ class Test_Amity(unittest.TestCase):
                 'staff': [Staff('Daisy Wanjiru'), Staff('Lavender Ayodi')],
                 'fellow': [Fellow('Maureen Wangui')]
             }
-        self.amity.all_allocations = {
-                'office': {
-                    'camelot': ['Daisy Wanjiru', 'Maureen Wangui'],
-                    'hogwarts': []
-                    },
-                'living_space': {
-                    'php': ['Maureen Wangui']
-                }
-                }
-        self.amity.all_unallocated = ['Lavender Ayodi']
+        self.amity.all_unallocated = {
+            'office': ['Lavender Ayodi'],
+            'living_space': ['Maureen Wangui']
+        }
         self.amity.all_rooms = {
                 'living_space': [LivingSpace('php'), LivingSpace('scala')],
                 'office': [Office('hogwarts'),
@@ -127,9 +121,10 @@ class Test_Amity(unittest.TestCase):
         self.assertIn('Successful.', message)
 
     def test_add_person_fellow_no_accomodation(self):
-        count = len(self.amity.all_unallocated)
+        count = len(self.amity.all_unallocated['living_space'])
         self.amity.add_person('F', 'Mary mary', 'N')
-        self.assertGreaterEqual(len(self.amity.all_unallocated), count)
+        self.assertGreaterEqual(len(
+            self.amity.all_unallocated['living_space']), count)
 
     def test_rejects_person_if_they_already_exists(self):
         self.amity.add_person('S', 'Daisy Wanjiru', 'N')
@@ -138,57 +133,46 @@ class Test_Amity(unittest.TestCase):
 
     def test_reallocate_person(self):
         person_name = 'Daisy Wanjiru'
-        new_room_name = 'Narnia'
-        self.amity.reallocate_staff(person_name, new_room_name)
-        self.assertIn(person_name,
-                      self.amity.all_allocations['office']['Narnia'])
+        new_room = self.amity.all_rooms['office'][0]
+        new_room_name = 'hogwarts'
+        self.amity.reallocate_person(person_name, new_room_name)
+        self.assertIn(person_name, new_room.occupants)
 
-    def test_reallocate_fellow(self):
         person_name = 'Maureen Wangui'
-        new_room_name = 'scala'
-        self.amity.reallocate_fellow(person_name, new_room_name)
-        self.assertIn(person_name,
-                      self.amity.all_allocations['living_space']['scala'])
-
-    def test_remove_person_from_previous_allocation_office(self):
-        person_name = 'Maureen Wangui'
-        self.amity.remove_person_from_previous_allocation_office(person_name)
-        self.assertNotIn(person_name,
-                         self.amity.all_allocations['office']['camelot'])
-
-    def test_remove_person_from_previous_allocation_living_space(self):
-        person_name = 'Maureen Wangui'
-        self.amity.remove_person_from_previous_allocation_living_space(
-            person_name)
-        self.assertNotIn(person_name,
-                         self.amity.all_allocations['living_space']['php'])
+        new_room = self.amity.all_rooms['living_space'][0]
+        new_room_name = 'php'
+        self.amity.reallocate_person(person_name, new_room_name)
+        self.assertIn(person_name, new_room.occupants)
 
     def test_print_room_living_space(self):
         living_space_name = 'php'
-        living_space = LivingSpace('php')
-        living_space.occupants = ['Test User']
+        living_space = self.amity.all_rooms['living_space'][0]
+        living_space.occupants.append('TEST USER')
         self.amity.print_room(living_space_name)
         message = sys.stdout.getvalue().strip()
-        self.assertIn('LIVING SPACE NAME: php', message)
+        self.assertIn('TEST USER', message)
 
     def test_print_room_office(self):
-        self.amity.add_person('Test User', 'S', 'N')
-        Office('camelot').occupants = ['Test User']
-        self.amity.print_room('camelot')
+        office_name = 'camelot'
+        office = self.amity.all_rooms['office'][2]
+        office.occupants.append('TEST USER')
+        self.amity.print_room(office_name)
         message = sys.stdout.getvalue().strip()
-        self.assertIn('Test User', message)
-
-    def test_empty_offices(self):
-        key = 'hogwarts'
-        self.amity.check_empty_offices(key)
-        message = sys.stdout.getvalue().strip()
-        self.assertIn('has no allocations at the moment...', message)
+        self.assertIn('TEST USER', message)
 
     def test_print_allocations_on_screen(self):
         filename = None
+        office_name = 'camelot'
+        office = self.amity.all_rooms['office'][2]
+        office.occupants.append('Daisy Wanjiru')
+
+        living_space_name = 'php'
+        living_space = self.amity.all_rooms['living_space'][0]
+        living_space.occupants.append('TEST USER')
+
         self.amity.print_allocations(filename)
         message = sys.stdout.getvalue().strip()
-        self.assertIn('Daisy Wanjiru,\tMaureen Wangui', message)
+        self.assertIn('Daisy Wanjiru', message)
 
     def test_print_unallocated_on_screen(self):
         filename = None
