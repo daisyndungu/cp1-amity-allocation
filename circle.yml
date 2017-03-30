@@ -1,0 +1,15 @@
+machine:
+    python:
+        version: 3.5.2
+dependencies:
+    pre:
+        - pip install -r requirements.txt
+test:
+    override:
+        - python amity/tests/test.py
+
+deployment:
+  staging:
+    branch: refactor-OOP
+    commands:
+      - git fetch origin --unshallow
