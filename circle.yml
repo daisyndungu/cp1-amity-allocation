@@ -4,9 +4,7 @@ machine:
 dependencies:
     pre:
         - pip install -r requirements.txt
-test:
-    override:
-        - python amity/tests/test.py
+script: nosetests
 
 deployment:
   staging:
