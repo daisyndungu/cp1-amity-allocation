@@ -6,7 +6,7 @@ dependencies:
         - pip install -r requirements.txt
 test:
     override:
-        - nosetests
+        - nosetests --with-coverage
 
 deployment:
   staging:
