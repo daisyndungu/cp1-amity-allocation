@@ -1,14 +1,8 @@
-		...STAFF...
+		...STAFFS...
 
-------------------
-Daisy Wanjiru
+	Daisy Wanjiru
 
+	Lavender Ayodi
+		...FELLOWS...
 
-------------------
-Lavender Ayodi
-
-		...FELLOW...
-
-------------------
-Maureen Wangui
-
+	Maureen Wangui

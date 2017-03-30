@@ -1,22 +1,12 @@
 		...OFFICE...
 
-------------------
-hogwarts
+	hogwarts
 
+	Narnia
 
-------------------
-Narnia
-
-
-------------------
-camelot
-
+	camelot
 		...LIVING SPACE...
 
-------------------
-php
+	php
 
-
-------------------
-scala
-
+	scala
