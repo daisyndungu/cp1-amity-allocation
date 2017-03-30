@@ -5,7 +5,7 @@ import os
 
 from io import StringIO
 
-from amity.amity import Amity
+from ..amity import Amity
 from amity.database.database_file import Database
 from amity.Person import Fellow, Staff
 from amity.Room import LivingSpace, Office
