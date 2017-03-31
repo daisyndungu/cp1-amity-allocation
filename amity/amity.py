@@ -215,7 +215,7 @@ class Amity(object):
                     for person in room.occupants:
                         if person == person_name:
                             cprint("{} is already allocated in {}...".format(
-                                room.name, person), 'red')
+                                person, room.name), 'red')
                             return
                     if len(room.occupants) < 6:
                         self.remove_person_from_previous_office_allocations(
@@ -230,8 +230,8 @@ class Amity(object):
                         return
                 elif (room.name == new_room_name and room.room_type ==
                       'living_space'):
-                    cprint('A Staff can not be allocated a living spaces \
-                           ', 'red')
+                    cprint('A Staff can not be allocated to a living space',
+                           'red')
                     return
         except:
             cprint('{} is not an office or it does not exist...'.format(
