@@ -205,7 +205,7 @@ class Amity(object):
 
     def reallocate_a_staff(self, person_name, new_room_name):
         """
-            Reallocate a person to a new office and reject reallocation to a 
+            Reallocate a person to a new office and reject reallocation to a
             livingspace
         """
         try:
