@@ -205,9 +205,9 @@ class Amity(object):
 
     def reallocate_a_staff(self, person_name, new_room_name):
         """
-            Reallocates a fellow to a new office or new living space
+            Reallocate a person to a new office and reject reallocation to a 
+            livingspace
         """
-        # Reallocate a person to a new office
         try:
             for room in self.all_rooms['office'] + self.all_rooms[
                  'living_space']:
@@ -238,6 +238,9 @@ class Amity(object):
                 new_room_name), 'red')
 
     def reallocate_a_fellow(self, person_name, new_room_name):
+        """
+            Reallocates a fellow to a new office or new living space
+        """
         try:
             for room in self.all_rooms['office'] + self.all_rooms[
                  'living_space']:
