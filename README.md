@@ -31,7 +31,7 @@ These are instructions for setting up Amity Commandline app in development envir
 
        $ python app.py -i
        
-       $git checkout refactor-OOP
+       $ git checkout refactor-OOP
        
  ### COMMANDS AVAILABLE
  * create_room <room_type><room_name(s)>
