@@ -559,7 +559,7 @@ class Amity(object):
                 cprint('\t \t *Saved successfully...', 'white')
                 db.commit()
             else:
-                cprint('\t\tLiving Space is empty at the moment...\
+                cprint('\t\tLiving Space waiting list is empty at the moment...\
                     \n', 'red')
             db.close_db()
         except:

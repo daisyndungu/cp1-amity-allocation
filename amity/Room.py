@@ -1,4 +1,9 @@
+from abc import ABCMeta
+
+
 class Room:
+    __metaclass__ = ABCMeta
+
     def __init__(self, name, room_type, space):
         self.space = space
         self.name = name

@@ -1,5 +1,9 @@
+from abc import ABCMeta
+
 
 class Person(object):
+    __metaclass__ = ABCMeta
+
     def __init__(self, name, position):
         self.name = name
         self.position = position
