@@ -1,5 +1,5 @@
 [![Coverage Status](https://coveralls.io/repos/github/daisyndungu/cp1-amity-allocation/badge.svg?branch=refactor-OOP)](https://coveralls.io/github/daisyndungu/cp1-amity-allocation?branch=refactor-OOP)
-
+[![CircleCI](https://circleci.com/gh/daisyndungu/cp1-amity-allocation/tree/refactor-OOP.svg?style=svg)](https://circleci.com/gh/daisyndungu/cp1-amity-allocation/tree/refactor-OOP)
 # cp1-amity-allocation
 A command-line application of a room allocation system for one of Andela’s facilities called Amity. This application allows one to create a list of rooms, add person, load the data stored in the application to a database among other functions.
 
