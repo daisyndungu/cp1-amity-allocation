@@ -8,8 +8,6 @@ dependencies:
 test:
     override:
         - nosetests --with-coverage --cover-package=amity
-    post:
-        - coveralls
 deployment:
   staging:
     branch: refactor-OOP
